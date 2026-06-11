@@ -1,0 +1,27 @@
+name: prd
+version: "2"
+summary: Product Requirements Document.
+signals: [prd, product requirements, user story, success metric, persona, mvp, non-goals, launch]
+dimensions:
+  - name: success_metrics
+    question: Are success metrics measurable and falsifiable?
+    anchors:
+      1: Success is described in aspirational language with no measurement.
+      3: Metrics exist but lack baselines, targets, or measurement method.
+      5: Each metric has a baseline, target, measurement method, and review date.
+  - name: scope_discipline
+    question: Are non-goals explicit and is scope internally consistent?
+    anchors:
+      1: No non-goals; scope statements conflict across sections.
+      3: Non-goals listed but requirements quietly exceed them.
+      5: Explicit non-goals, and every requirement traces to an in-scope goal.
+  - name: edge_and_abuse_cases
+    question: Are edge cases and abuse cases addressed, not just the happy path?
+    anchors:
+      1: Happy path only.
+      3: Some edge cases; abuse/misuse unconsidered.
+      5: Edge and abuse cases enumerated with intended behavior for each.
+gating_dimensions: [success_metrics, scope_discipline]
+structure_expectations: [Problem, Goals, Non-goals, Requirements, Metrics, Risks]
+personas: [audience-advocate]
+defect_probes: [replace measurable metrics with aspirations, smuggle a requirement that violates non-goals]

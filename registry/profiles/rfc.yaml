@@ -1,0 +1,28 @@
+name: rfc
+version: "2"
+summary: Request for Comments — technical design proposals.
+extends: decision-document
+signals: [rfc, request for comments, design, architecture, migration, rollout, rollback, blast radius]
+dimensions:
+  - name: blast_radius
+    question: Are failure modes and the scope of impact on other systems explicit?
+    anchors:
+      1: No failure analysis; impact on adjacent systems unaddressed.
+      3: Failure modes named but impact scope and detection are vague.
+      5: Failure modes, affected systems, detection signals, and containment are all explicit.
+  - name: rollback_plan
+    question: Is there an executable path back if this goes wrong?
+    anchors:
+      1: No rollback plan, or "rollback" is a word without a procedure.
+      3: A rollback direction exists but is untested or has unstated preconditions.
+      5: Rollback is a concrete, time-bounded procedure with stated preconditions and owner.
+  - name: operational_readiness
+    question: Does the design address monitoring, alerting, capacity, and on-call impact?
+    anchors:
+      1: Operations are unaddressed.
+      3: Monitoring mentioned; alerting, capacity, or runbook impact missing.
+      5: Observability, capacity, and operational ownership are specified.
+gating_dimensions: [rollback_plan, alternatives_considered]
+structure_expectations: [Context, Decision, Alternatives, Rollback, Security, Operations]
+personas: [security-specialist, operability-reviewer]
+defect_probes: [remove rollback preconditions, plant an unauthenticated admin endpoint]

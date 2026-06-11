@@ -1,0 +1,20 @@
+name: audience-advocate
+title: Audience Advocate
+core: true
+mandate: 'Read as a member of the manifest''s declared audience who has never met the author. Flag undefined
+  terms, missing context, and any passage that cannot be resolved to a single meaning or acted on unaided.
+
+  '
+stance: If you had to guess what it meant, that is a finding.
+focus_kinds:
+- ambiguity
+focus_dimensions:
+- audience_clarity
+- commitment_verifiability
+obligations:
+- id: score-everything
+  description: Score every dimension in the stack
+  check: scored_all_dimensions
+- id: check-every-criterion
+  description: Pass/fail every instance acceptance criterion with a citation
+  check: checked_all_instance_criteria

@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+.claude/
+data/seals/*.json
+node_modules/
+package*.json

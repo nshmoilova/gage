@@ -1,0 +1,34 @@
+# Per-model endpoint configuration for internally hosted models.
+# Each entry maps a model ref (vendor:model-id) to its endpoint URL.
+# The vendor prefix determines which protocol adapter is used:
+#   anthropic:  → Anthropic Messages API  (POST <endpoint>/v1/messages)
+#   openai:     → OpenAI Chat Completions (POST <endpoint>/v1/chat/completions)
+#   gemini:     → Gemini generateContent  (POST <endpoint>/v1beta/models/...)
+#   xai:        → same as openai protocol
+#
+# Most internal gateways (vLLM, LiteLLM, Ollama, TGI) speak the OpenAI
+# protocol, so use the openai: prefix for them.
+#
+# Optional fields:
+#   api_key_env  — name of the env var holding the bearer token for this
+#                  endpoint (omit if the gateway authenticates at the network
+#                  layer or uses the vendor-level key)
+#
+# Configured models appear in the UI catalog automatically.
+#
+# Override this file's path with GAGE_MODELS_CONFIG=/path/to/models.yaml.
+#
+# Examples (uncomment and edit):
+#
+# - ref: openai:corp-llama-70b
+#   endpoint: https://llm-gateway.corp.internal
+#
+# - ref: openai:corp-qwen-72b
+#   endpoint: https://llm-gateway.corp.internal
+#
+# - ref: anthropic:claude-opus-4-8
+#   endpoint: https://claude-proxy.corp.internal
+#   api_key_env: CLAUDE_PROXY_KEY
+#
+# - ref: openai:ollama-mistral
+#   endpoint: http://localhost:11434

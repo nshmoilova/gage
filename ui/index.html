@@ -1,0 +1,1954 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GAGE — Artifact Review Council</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF1F4; --card:#FFFFFF; --ink:#16242F; --muted:#5C707D;
+  --line:#D3DCE2; --seal:#1F6F6B; --seal-soft:#E2EEED;
+  --ok:#2E7D4F; --cond:#B07A1F; --rev:#B5532E; --rej:#8C2F39;
+  --ok-soft:#E4F0E8; --cond-soft:#F6ECDA; --rev-soft:#F5E4DD; --rej-soft:#F2E0E2;
+  --radius:10px; --shadow:0 1px 2px rgba(22,36,47,.06), 0 4px 14px rgba(22,36,47,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 "Public Sans",system-ui,-apple-system,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--seal);outline-offset:2px;border-radius:4px}
+
+/* ---------- masthead ---------- */
+.masthead{display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:14px 22px;border-bottom:1px solid var(--line);background:var(--card)}
+.brand{display:flex;align-items:baseline;gap:12px}
+.brand-mark{font:700 22px/1 "Spectral",serif;letter-spacing:.06em}
+.brand-mark .dot{display:inline-block;width:9px;height:9px;background:var(--seal);border-radius:2px;margin-left:6px;transform:translateY(-7px)}
+.brand-sub{color:var(--muted);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+.masthead-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.badge{font:500 12px/1 "IBM Plex Mono",monospace;color:var(--muted);background:var(--paper);
+  border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+
+/* ---------- shell + rail (signature element) ---------- */
+.shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:22px;max-width:1240px;margin:22px auto;padding:0 22px}
+.rail{position:sticky;top:18px;align-self:start;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 16px}
+.rail h2{margin:0 0 14px;font:600 11.5px/1 "Public Sans",sans-serif;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+.node{position:relative;display:flex;gap:12px;padding:0 0 22px}
+.node:last-child{padding-bottom:2px}
+.node .stem{position:absolute;left:7px;top:18px;bottom:0;width:2px;background:var(--line)}
+.node:last-child .stem{display:none}
+.node.done .stem{background:var(--seal)}
+.node-dot{flex:none;width:16px;height:16px;border-radius:50%;border:2px solid var(--line);
+  background:var(--card);margin-top:2px;transition:all .25s}
+.node.active .node-dot{border-color:var(--seal);box-shadow:0 0 0 4px var(--seal-soft);animation:pulse 1.6s ease-in-out infinite}
+.node.done .node-dot{border-color:var(--seal);background:var(--seal)}
+.node.error .node-dot{border-color:var(--rej);background:var(--rej)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px var(--seal-soft)}50%{box-shadow:0 0 0 7px var(--seal-soft)}}
+.node-label{font-weight:600;font-size:13.5px}
+.node-meta{font:400 11.5px/1.5 "IBM Plex Mono",monospace;color:var(--muted);margin-top:2px;word-break:break-word}
+.node.done .node-label{color:var(--seal)}
+
+/* ---------- cards & panels ---------- */
+.main{display:flex;flex-direction:column;gap:18px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:20px 22px}
+.card h2{margin:0 0 4px;font:600 19px/1.3 "Spectral",serif}
+.card .eyebrow{font:600 11px/1 "Public Sans",sans-serif;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--seal);margin:0 0 8px}
+.card .lede{color:var(--muted);margin:0 0 16px;font-size:13.5px}
+.hidden{display:none !important}
+
+/* ---------- form bits ---------- */
+textarea,input[type=text]{width:100%;border:1px solid var(--line);border-radius:8px;
+  background:#FBFCFD;padding:9px 11px;color:var(--ink)}
+textarea:focus,input[type=text]:focus,select:focus{border-color:var(--seal);outline:none;
+  box-shadow:0 0 0 3px var(--seal-soft)}
+textarea{resize:vertical;font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.55}
+label.fld{display:block;font-weight:600;font-size:12.5px;margin:14px 0 5px;color:var(--ink)}
+label.fld .hint{font-weight:400;color:var(--muted)}
+select{border:1px solid var(--line);border-radius:8px;background:#FBFCFD;padding:8px 10px}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>.col{flex:1 1 220px;min-width:0}
+.btn{border:1px solid var(--seal);background:var(--seal);color:#fff;border-radius:8px;
+  padding:9px 16px;font-weight:600;cursor:pointer;transition:filter .15s}
+.btn:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--seal)}
+.btn.quiet{background:transparent;color:var(--muted);border-color:var(--line)}
+.btn.danger{background:var(--rej);border-color:var(--rej)}
+.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px}
+.mini{font-size:12px;color:var(--muted)}
+.crit-row{display:flex;gap:8px;margin-bottom:8px}
+.crit-row input{flex:1}
+.icon-btn{border:1px solid var(--line);background:var(--paper);border-radius:8px;width:36px;
+  cursor:pointer;color:var(--muted);font-weight:700}
+.icon-btn:hover{color:var(--rej);border-color:var(--rej)}
+
+/* ---------- notices, chips, meters ---------- */
+.notice{border:1px solid var(--line);border-left:4px solid var(--seal);border-radius:8px;
+  background:var(--seal-soft);padding:11px 14px;font-size:13.5px;margin:0 0 14px}
+.notice.warn{border-left-color:var(--cond);background:var(--cond-soft)}
+.notice.bad{border-left-color:var(--rej);background:var(--rej-soft)}
+.chip{display:inline-block;font:600 11px/1 "Public Sans",sans-serif;letter-spacing:.05em;
+  text-transform:uppercase;border-radius:999px;padding:5px 9px;border:1px solid transparent}
+.chip.blocking{background:var(--rej-soft);color:var(--rej)}
+.chip.major{background:var(--rev-soft);color:var(--rev)}
+.chip.minor{background:var(--cond-soft);color:var(--cond)}
+.chip.suggestion{background:var(--paper);color:var(--muted);border-color:var(--line)}
+.chip.kind{background:var(--paper);color:var(--muted);border-color:var(--line);text-transform:none;letter-spacing:0}
+.chip.gate{background:var(--ink);color:#fff}
+.chip.core{background:var(--seal-soft);color:var(--seal)}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.meter{position:relative;height:6px;background:var(--paper);border:1px solid var(--line);
+  border-radius:999px;overflow:hidden;min-width:90px}
+.meter>i{position:absolute;inset:0 auto 0 0;background:var(--seal);border-radius:999px}
+.scoredots{letter-spacing:2px;font-size:13px;color:var(--seal)}
+.scoredots .off{color:var(--line)}
+
+/* ---------- tables ---------- */
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font:600 11px/1.3 "Public Sans",sans-serif;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);text-align:left;padding:8px 10px;border-bottom:2px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.tbl-wrap table{min-width:560px}
+.xcell{text-align:center;font-weight:700}
+.x-confirm{color:var(--ok)} .x-reject{color:var(--rej)} .x-cv{color:var(--muted)} .x-raised{color:var(--seal)}
+
+/* ---------- verdict banner ---------- */
+.verdict{display:flex;align-items:center;gap:16px;border-radius:var(--radius);padding:18px 20px;
+  border:1px solid var(--line);margin-bottom:16px}
+.verdict .v-word{font:700 24px/1 "Spectral",serif;letter-spacing:.02em}
+.verdict .v-sub{font-size:12.5px;color:var(--muted)}
+.verdict.approve{background:var(--ok-soft);border-color:var(--ok)} .verdict.approve .v-word{color:var(--ok)}
+.verdict.approve_with_conditions{background:var(--cond-soft);border-color:var(--cond)} .verdict.approve_with_conditions .v-word{color:var(--cond)}
+.verdict.revise{background:var(--rev-soft);border-color:var(--rev)} .verdict.revise .v-word{color:var(--rev)}
+.verdict.reject{background:var(--rej-soft);border-color:var(--rej)} .verdict.reject .v-word{color:var(--rej)}
+
+/* ---------- findings ---------- */
+.finding{border:1px solid var(--line);border-radius:8px;padding:13px 15px;margin-bottom:10px;background:#FDFEFE}
+.finding .f-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.finding .f-loc{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted)}
+.finding .f-stmt{font-weight:600;margin:2px 0 4px}
+.finding .f-ev{font-size:13px;color:var(--muted)}
+.finding .f-rec{font-size:13px;margin-top:5px}
+.finding .f-rec b{color:var(--seal)}
+.f-consensus{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;color:var(--muted)}
+
+/* ---------- tabs ---------- */
+.tabs{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tab{border:none;background:none;padding:9px 14px;font-weight:600;color:var(--muted);cursor:pointer;
+  border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab[aria-selected=true]{color:var(--seal);border-bottom-color:var(--seal)}
+.seat-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.seat-tab{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 13px;
+  font-size:12.5px;font-weight:600;cursor:pointer;color:var(--muted)}
+.seat-tab[aria-selected=true]{background:var(--seal);border-color:var(--seal);color:#fff}
+
+/* ---------- misc ---------- */
+details.fm{border:1px solid var(--line);border-radius:8px;background:#FBFCFD;margin-top:14px}
+details.fm summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:13px;color:var(--seal)}
+details.fm pre{margin:0;padding:0 14px 14px;overflow-x:auto;font:12.5px/1.5 "IBM Plex Mono",monospace}
+.kv{display:grid;grid-template-columns:170px 1fr;gap:6px 14px;font-size:13.5px}
+.kv dt{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding-top:2px}
+.kv dd{margin:0;min-width:0;overflow-wrap:break-word}
+.dropzone{border:2px dashed var(--line);border-radius:8px;padding:10px 14px;display:flex;gap:12px;
+  align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px;background:#FBFCFD}
+.dropzone.drag{border-color:var(--seal);background:var(--seal-soft)}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:11px 18px;border-radius:8px;font-size:13.5px;box-shadow:var(--shadow);opacity:0;
+  pointer-events:none;transition:opacity .2s;max-width:min(560px,90vw);z-index:50}
+#toast.show{opacity:1}
+.anomaly{border:1px dashed var(--cond);background:var(--cond-soft);border-radius:8px;
+  padding:10px 14px;font-size:13px;margin-bottom:8px}
+.subhead{font:600 15px/1.3 "Spectral",serif;margin:22px 0 10px}
+.dismiss-block{border:1px solid var(--rej);border-radius:8px;padding:12px 14px;margin-bottom:10px;background:var(--rej-soft)}
+.dismiss-block .f-stmt{font-size:13.5px}
+
+/* ---------- council chamber ---------- */
+.chamber{position:relative;height:330px;border:1px solid var(--line);border-radius:var(--radius);
+  background:linear-gradient(180deg,#FBFCFD 0%,var(--seal-soft) 140%);overflow:hidden}
+.chamber.flat{height:auto;display:flex;flex-wrap:wrap;gap:10px;padding:14px;align-items:stretch;justify-content:center}
+.seatcard{position:absolute;transform:translate(-50%,-50%);width:118px;background:var(--card);
+  border:1px solid var(--line);border-radius:10px;padding:8px 9px 9px;text-align:center;box-shadow:var(--shadow)}
+.chamber.flat .seatcard{position:static;transform:none;flex:0 0 118px}
+.seatcard .s-top{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:5px}
+.s-dot{width:9px;height:9px;border-radius:50%;background:var(--line);flex:none}
+.seatcard.deliberating .s-dot{background:var(--seal);animation:pulse 1.4s ease-in-out infinite}
+.seatcard.done .s-dot{background:var(--seal)}
+.seatcard.done{border-color:var(--seal)}
+.s-id{font:600 10.5px/1 "IBM Plex Mono",monospace;color:var(--muted)}
+.s-mono{width:34px;height:34px;border-radius:50%;margin:0 auto 5px;display:flex;align-items:center;
+  justify-content:center;font:700 12.5px/1 "Spectral",serif;letter-spacing:.04em;
+  background:var(--seal);color:#fff}
+.seatcard.adversarial .s-mono{background:var(--ink)}
+.seatcard.specialist .s-mono{background:var(--card);color:var(--seal);border:2px solid var(--seal)}
+.s-title{font-weight:600;font-size:11px;line-height:1.25;margin-bottom:5px;min-height:26px}
+.s-model{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font:500 9.5px/1 "IBM Plex Mono",monospace;color:var(--seal);background:var(--seal-soft);
+  border:1px solid var(--line);border-radius:999px;padding:4px 7px}
+.ch-table{position:absolute;left:50%;top:76%;transform:translate(-50%,-50%);width:300px;max-width:60%;
+  border:2px solid var(--seal);border-radius:50%/42%;background:var(--card);text-align:center;
+  padding:16px 18px;box-shadow:var(--shadow)}
+.chamber.flat .ch-table{position:static;transform:none;width:100%;max-width:none;border-radius:12px;order:10}
+.ch-table .t-label{font:600 9.5px/1 "Public Sans",sans-serif;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.ch-table .t-id{font:600 13px/1.3 "IBM Plex Mono",monospace;word-break:break-all}
+.ch-table .t-meta{font-size:11px;color:var(--muted);margin-top:4px}
+.chairman-bar{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:10px;
+  background:var(--card);padding:10px 14px;margin-top:12px;flex-wrap:wrap}
+.chairman-bar .c-mono{width:34px;height:34px;border-radius:8px;background:var(--ink);color:#fff;flex:none;
+  display:flex;align-items:center;justify-content:center;font:700 13px/1 "Spectral",serif}
+.chairman-bar.active .c-mono{animation:pulse 1.4s ease-in-out infinite}
+.chairman-bar .c-note{font-size:12px;color:var(--muted)}
+.s-model-inp{width:100%;max-width:126px;border:1px solid var(--line);border-left-width:4px;border-radius:7px;
+  background:#FBFCFD;padding:5px 5px;font:500 10px/1.2 "IBM Plex Mono",monospace;color:var(--ink)}
+.chairman-bar .s-model-inp{max-width:240px;font-size:11.5px;padding:6px 6px}
+.bench-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.bench-bar input{flex:1 1 240px;border:1px solid var(--line);border-radius:8px;background:#FBFCFD;
+  padding:8px 10px;font:500 12.5px/1.4 "IBM Plex Mono",monospace}
+.col-x{border:none;background:none;color:var(--muted);cursor:pointer;font-size:10px;
+  padding:2px 3px;vertical-align:middle}
+.col-x:hover{color:var(--rej)}
+.swatch{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:baseline;flex:none}
+.model-legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px;font:500 11.5px/1
+  "IBM Plex Mono",monospace;color:var(--muted)}
+.model-legend .ml-label{font:600 10px/1 "Public Sans",sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.model-legend span{display:inline-flex;align-items:center}
+.chamber.grid{height:auto;padding:14px;display:block;overflow:visible}
+.mgrid-scroll{overflow-x:auto}
+table.mgrid{border-collapse:separate;border-spacing:6px;width:100%;min-width:520px}
+.mgrid th{border:none;padding:2px 4px;text-transform:none;letter-spacing:0}
+.mgrid .m-corner{font:600 10px/1.3 "Public Sans",sans-serif;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);text-align:left;vertical-align:bottom}
+.mgrid .m-col{text-align:center;vertical-align:bottom}
+.mgrid .m-row{text-align:left;white-space:nowrap;font-size:11.5px;font-weight:600}
+.mgrid .m-row .s-mono{width:24px;height:24px;font-size:10px;margin:0 8px 0 0;display:inline-flex;vertical-align:middle}
+.mcell{background:var(--card);border:1px solid var(--line);border-radius:8px;text-align:center;
+  padding:9px 6px;min-width:66px;font:600 10.5px/1 "IBM Plex Mono",monospace;color:var(--muted)}
+.mcell{cursor:pointer;transition:border-color .15s}
+.mcell.ghost{background:transparent;border-style:dashed;color:var(--line);font-size:14px}
+.mcell.ghost:hover{border-color:var(--seal);color:var(--seal)}
+.mcell.off{background:transparent;border-style:dashed;color:var(--muted);opacity:.55}
+.mcell.off:hover{opacity:1;border-color:var(--seal)}
+.mcell.on{border-color:var(--seal);border-width:1.5px}
+.mcell .cellpay{display:block;margin-top:5px;font:600 9.5px/1 "IBM Plex Mono",monospace;color:var(--muted)}
+.mcell .cellpay .b{font-style:normal;color:var(--rej)}
+.mcell .cellpay .m{font-style:normal;color:var(--rev)}
+.mcell .cellpay .mi{font-style:normal;color:var(--cond)}
+#seatInspector{margin-top:14px;border:1.5px solid var(--seal);border-radius:10px;background:#FDFEFE;
+  padding:15px 17px;box-shadow:var(--shadow)}
+.si-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.si-head .icon-btn{margin-left:auto}
+.si-mandate{font-size:12.5px;color:var(--muted);border-left:3px solid var(--seal);
+  padding-left:10px;margin:6px 0 12px;font-style:italic}
+.si-adj{font:500 12px/1.6 "IBM Plex Mono",monospace;color:var(--muted);margin:-4px 0 10px 2px}
+.si-given{max-height:240px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px 12px}
+.mcell .s-dot{display:inline-block;margin-right:6px;vertical-align:-1px}
+.mcell.deliberating .s-dot{background:var(--seal);animation:pulse 1.4s ease-in-out infinite}
+.mcell.done{border-color:var(--seal)} .mcell.done .s-dot{background:var(--seal)}
+.mgrid .m-assign{min-width:130px;text-align:left}
+.mgrid td.m-assign{background:transparent;border:none;padding:2px 4px;vertical-align:middle}
+.mgrid td.m-assign .s-model-inp{max-width:126px;font-size:10.5px;padding:5px 5px}
+.mgrid-meta{margin-top:10px;font:500 11.5px/1.5 "IBM Plex Mono",monospace;color:var(--muted)}
+.chamber-caption{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;
+  margin-top:10px;font-size:12.5px;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:baseline}
+
+/* ---------- how-it-works diagram ---------- */
+#panel-howit svg{width:100%;height:auto;display:block}
+.hw-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:#FBFCFD;padding:8px}
+.hw-wrap svg{min-width:880px}
+.hw-box{fill:var(--card);stroke:var(--line);stroke-width:1.5;rx:10}
+.hw-box.stage{stroke:var(--seal)}
+.hw-box.human{stroke:var(--ink);stroke-dasharray:5 4}
+.hw-diamond{fill:var(--cond-soft);stroke:var(--cond);stroke-width:1.5}
+.hw-num{font:700 11px "IBM Plex Mono",monospace;fill:var(--seal);letter-spacing:.1em}
+.hw-title{font:600 14px "Spectral",serif;fill:var(--ink)}
+.hw-desc{font:400 10.5px "Public Sans",sans-serif;fill:var(--muted)}
+.hw-small{font:600 10px "Public Sans",sans-serif;fill:var(--ink)}
+.hw-arrow{stroke:var(--muted);stroke-width:1.6;fill:none;marker-end:url(#hwArr)}
+.hw-arrow.yes{stroke:var(--ok)}
+.hw-arrow.no{stroke:var(--cond)}
+.hw-seat{fill:var(--seal-soft);stroke:var(--seal);stroke-width:1.2}
+.hw-seat.adv{fill:var(--ink);stroke:var(--ink)}
+.hw-wall{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+.hw-cross{stroke:var(--seal);stroke-width:1.3;fill:none;opacity:.75}
+.hw-gear{fill:var(--card);stroke:var(--ink);stroke-width:1.5}
+.hw-invariant{font:500 10.5px "Public Sans",sans-serif;fill:var(--ink)}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important;transition:none !important}
+}
+@media (max-width:880px){
+  .shell{grid-template-columns:1fr;gap:14px;margin-top:14px}
+  .rail{position:static;display:flex;gap:0;overflow-x:auto;padding:14px}
+  .rail h2{display:none}
+  .node{flex:1 0 110px;flex-direction:column;align-items:center;text-align:center;padding:0 6px;gap:6px}
+  .node .stem{left:50%;right:-50%;top:8px;bottom:auto;width:auto;height:2px;transform:translateX(8px)}
+  .node-meta{font-size:10.5px}
+  .kv{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">
+    <div class="brand-mark">GAGE<span class="dot"></span></div>
+    <div class="brand-sub">Artifact Review Council</div>
+  </div>
+  <div class="masthead-right">
+    <span class="badge" id="providerBadge">loading registry…</span>
+    <button class="btn ghost" id="howitBtn" type="button" aria-expanded="false">How it works</button>
+    <button class="btn quiet" id="resetBtn" type="button">New review</button>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- signature element: the pipeline rail -->
+  <aside class="rail" aria-label="Pipeline progress">
+    <h2>Pipeline</h2>
+    <div class="node" id="node-intake"><span class="stem"></span><span class="node-dot"></span>
+      <div><div class="node-label">Intake</div><div class="node-meta" id="meta-intake">awaiting document</div></div></div>
+    <div class="node" id="node-critique"><span class="stem"></span><span class="node-dot"></span>
+      <div><div class="node-label">Critique</div><div class="node-meta" id="meta-critique">independent seats</div></div></div>
+    <div class="node" id="node-crossexam"><span class="stem"></span><span class="node-dot"></span>
+      <div><div class="node-label">Cross-exam</div><div class="node-meta" id="meta-crossexam">anonymized</div></div></div>
+    <div class="node" id="node-synthesis"><span class="stem"></span><span class="node-dot"></span>
+      <div><div class="node-label">Synthesis</div><div class="node-meta" id="meta-synthesis">mechanical disposition</div></div></div>
+    <div class="node" id="node-seal"><span class="stem"></span><span class="node-dot"></span>
+      <div><div class="node-label">Authorize &amp; Seal</div><div class="node-meta" id="meta-seal">human decision</div></div></div>
+  </aside>
+
+  <main class="main">
+
+    <!-- 0 · how it works (toggle) -->
+    <section class="card hidden" id="panel-howit">
+      <p class="eyebrow">The process</p>
+      <h2>How the council reviews a document</h2>
+      <p class="lede">One invariant pipeline for every artifact type. Diversity does the judging,
+        anonymization keeps it honest, policy makes the call mechanical, and a human holds the pen.</p>
+      <div class="hw-wrap">
+      <svg viewBox="0 0 960 500" role="img" aria-label="GAGE process: manifest branch, then five stages from binding to human seal">
+        <defs>
+          <marker id="hwArr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#5C707D"/>
+          </marker>
+        </defs>
+
+        <!-- manifest branch -->
+        <rect class="hw-box" x="16" y="36" width="130" height="56" rx="10"/>
+        <text class="hw-title" x="30" y="60">Document</text>
+        <text class="hw-desc" x="30" y="78">any text artifact</text>
+
+        <path class="hw-arrow" d="M146,64 H171"/>
+        <polygon class="hw-diamond" points="175,64 235,28 295,64 235,100"/>
+        <text class="hw-small" x="235" y="60" text-anchor="middle">manifest in</text>
+        <text class="hw-small" x="235" y="74" text-anchor="middle">frontmatter?</text>
+
+        <text class="hw-desc" x="306" y="54">no</text>
+        <path class="hw-arrow no" d="M295,64 H326"/>
+        <rect class="hw-box" x="330" y="36" width="170" height="56" rx="10"/>
+        <text class="hw-title" x="344" y="60">Draft manifest</text>
+        <text class="hw-desc" x="344" y="78">heuristic or LLM inference</text>
+
+        <path class="hw-arrow" d="M500,64 H521"/>
+        <rect class="hw-box human" x="525" y="36" width="180" height="56" rx="10"/>
+        <text class="hw-title" x="539" y="60">Human confirms</text>
+        <text class="hw-desc" x="539" y="78">edits the draft · never silent</text>
+
+        <path class="hw-arrow" d="M705,64 H726"/>
+        <rect class="hw-box" x="730" y="36" width="200" height="56" rx="10"/>
+        <text class="hw-title" x="744" y="60">Inject frontmatter</text>
+        <text class="hw-desc" x="744" y="78">other keys preserved</text>
+
+        <text class="hw-desc" x="243" y="130">yes</text>
+        <path d="M235,100 V148" stroke="#2E7D4F" stroke-width="1.6" fill="none"/>
+        <path d="M830,92 V150 H101" stroke="#5C707D" stroke-width="1.6" fill="none"/>
+        <path class="hw-arrow" d="M101,150 V192"/>
+
+        <!-- five stages -->
+        <!-- stage 0 -->
+        <rect class="hw-box stage" x="16" y="196" width="170" height="214" rx="10"/>
+        <text class="hw-num" x="30" y="222">STAGE 0</text>
+        <text class="hw-title" x="30" y="244">Bind</text>
+        <text class="hw-desc" x="30" y="266">Compose criteria stack:</text>
+        <text class="hw-desc" x="30" y="281">universal 7 + genre</text>
+        <text class="hw-desc" x="30" y="296">profile + instance musts.</text>
+        <text class="hw-desc" x="30" y="311">Seat the council</text>
+        <text class="hw-desc" x="30" y="326">(persona × model).</text>
+        <rect x="36" y="346" width="64" height="11" rx="3" fill="#E2EEED" stroke="#1F6F6B"/>
+        <rect x="46" y="361" width="64" height="11" rx="3" fill="#E2EEED" stroke="#1F6F6B"/>
+        <rect x="56" y="376" width="64" height="11" rx="3" fill="#E2EEED" stroke="#1F6F6B"/>
+        <text class="hw-desc" x="36" y="402">frozen evaluation plan</text>
+
+        <path class="hw-arrow" d="M186,300 H200"/>
+
+        <!-- stage 1 -->
+        <rect class="hw-box stage" x="204" y="196" width="170" height="214" rx="10"/>
+        <text class="hw-num" x="218" y="222">STAGE 1</text>
+        <text class="hw-title" x="218" y="244">Independent critique</text>
+        <text class="hw-desc" x="218" y="266">Every seat reviews alone,</text>
+        <text class="hw-desc" x="218" y="281">one finding schema, eight</text>
+        <text class="hw-desc" x="218" y="296">defect kinds.</text>
+        <text class="hw-desc" x="218" y="311">No citation, no finding.</text>
+        <rect class="hw-seat" x="222" y="338" width="20" height="20" rx="4"/>
+        <line class="hw-wall" x1="252" y1="332" x2="252" y2="364"/>
+        <rect class="hw-seat" x="262" y="338" width="20" height="20" rx="4"/>
+        <line class="hw-wall" x1="292" y1="332" x2="292" y2="364"/>
+        <rect class="hw-seat adv" x="302" y="338" width="20" height="20" rx="4"/>
+        <line class="hw-wall" x1="332" y1="332" x2="332" y2="364"/>
+        <rect class="hw-seat" x="342" y="338" width="20" height="20" rx="4"/>
+        <text class="hw-desc" x="222" y="382">isolated · the dark seat is</text>
+        <text class="hw-desc" x="222" y="396">the contrarian (must object)</text>
+
+        <path class="hw-arrow" d="M374,300 H388"/>
+
+        <!-- stage 2 -->
+        <rect class="hw-box stage" x="392" y="196" width="170" height="214" rx="10"/>
+        <text class="hw-num" x="406" y="222">STAGE 2</text>
+        <text class="hw-title" x="406" y="244">Cross-exam</text>
+        <text class="hw-desc" x="406" y="266">Identities stripped, order</text>
+        <text class="hw-desc" x="406" y="281">shuffled. Each finding gets</text>
+        <text class="hw-desc" x="406" y="296">confirm / reject / can't-verify.</text>
+        <text class="hw-desc" x="406" y="311">Consensus accrues to defects,</text>
+        <text class="hw-desc" x="406" y="326">not reviewers.</text>
+        <circle cx="425" cy="362" r="11" fill="#E2EEED" stroke="#1F6F6B" stroke-width="1.2"/>
+        <text class="hw-small" x="425" y="366" text-anchor="middle">A</text>
+        <circle cx="477" cy="362" r="11" fill="#E2EEED" stroke="#1F6F6B" stroke-width="1.2"/>
+        <text class="hw-small" x="477" y="366" text-anchor="middle">B</text>
+        <circle cx="529" cy="362" r="11" fill="#E2EEED" stroke="#1F6F6B" stroke-width="1.2"/>
+        <text class="hw-small" x="529" y="366" text-anchor="middle">C</text>
+        <path class="hw-cross" d="M437,358 H465"/>
+        <path class="hw-cross" d="M489,358 H517"/>
+        <path class="hw-cross" d="M427,350 Q477,322 527,350"/>
+        <path class="hw-cross" d="M527,374 Q477,400 427,374"/>
+
+        <path class="hw-arrow" d="M562,300 H576"/>
+
+        <!-- stage 3 -->
+        <rect class="hw-box stage" x="580" y="196" width="170" height="214" rx="10"/>
+        <text class="hw-num" x="594" y="222">STAGE 3</text>
+        <text class="hw-title" x="594" y="244">Synthesis</text>
+        <text class="hw-desc" x="594" y="266">Dedupe by defect, score</text>
+        <text class="hw-desc" x="594" y="281">dispersion, instance checks.</text>
+        <text class="hw-desc" x="594" y="296">Disposition computed by</text>
+        <text class="hw-desc" x="594" y="311">declarative policy rules —</text>
+        <text class="hw-desc" x="594" y="326">chairman may dissent,</text>
+        <text class="hw-desc" x="594" y="341">cannot override.</text>
+        <circle class="hw-gear" cx="665" cy="376" r="13"/>
+        <g stroke="#16242F" stroke-width="2">
+          <line x1="665" y1="358" x2="665" y2="364"/><line x1="665" y1="388" x2="665" y2="394"/>
+          <line x1="647" y1="376" x2="653" y2="376"/><line x1="677" y1="376" x2="683" y2="376"/>
+          <line x1="652" y1="363" x2="656" y2="367"/><line x1="674" y1="385" x2="678" y2="389"/>
+          <line x1="678" y1="363" x2="674" y2="367"/><line x1="656" y1="385" x2="652" y2="389"/>
+        </g>
+        <text class="hw-desc" x="688" y="380">mechanical</text>
+
+        <path class="hw-arrow" d="M750,300 H764"/>
+
+        <!-- stage 4 -->
+        <rect class="hw-box stage human" x="768" y="196" width="170" height="214" rx="10"/>
+        <text class="hw-num" x="782" y="222">STAGE 4</text>
+        <text class="hw-title" x="782" y="244">Authorize &amp; seal</text>
+        <text class="hw-desc" x="782" y="266">A human decides — every</text>
+        <text class="hw-desc" x="782" y="281">time. Dismissing a blocking</text>
+        <text class="hw-desc" x="782" y="296">finding requires a recorded</text>
+        <text class="hw-desc" x="782" y="311">reason, kept verbatim.</text>
+        <text class="hw-desc" x="782" y="326">sha-256 over the whole</text>
+        <text class="hw-desc" x="782" y="341">deliberation.</text>
+        <circle cx="853" cy="378" r="17" fill="none" stroke="#1F6F6B" stroke-width="2.5"/>
+        <circle cx="853" cy="378" r="11" fill="#E2EEED" stroke="#1F6F6B" stroke-width="1.2"/>
+        <path d="M847,378 l4,4 l8,-9" stroke="#1F6F6B" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <text class="hw-desc" x="876" y="382">evidence seal</text>
+
+        <!-- invariants -->
+        <text class="hw-invariant" x="16" y="444">● Independence before deliberation — first opinions form in isolation, so they cannot anchor each other.</text>
+        <text class="hw-invariant" x="16" y="464">● Anonymization kills self-preference — critiques are re-verified blind, ranked on rigor alone.</text>
+        <text class="hw-invariant" x="16" y="484">● Judgment is distributed · decision is mechanical · authority is human — and the seal proves all three.</text>
+      </svg>
+      </div>
+    </section>
+
+    <!-- 1 · intake -->
+    <section class="card" id="panel-intake">
+      <p class="eyebrow">Step 1 · Intake</p>
+      <h2>Submit a document</h2>
+      <p class="lede">Paste or upload any text artifact. GAGE checks the YAML frontmatter for a
+        <span class="mono">manifest:</span> block — the declaration that makes a bare document evaluable.</p>
+      <div class="dropzone" id="dropzone">
+        <span class="mini">Drop a .md / .txt file here, or</span>
+        <span>
+          <input type="file" id="fileInput" accept=".md,.txt,.markdown" class="hidden">
+          <button class="btn ghost" type="button" id="browseBtn">Browse files</button>
+          <button class="btn ghost" type="button" id="sampleBtn">Load sample RFC</button>
+        </span>
+      </div>
+      <textarea id="docText" rows="12" spellcheck="false" placeholder="# Paste your artifact here…"></textarea>
+      <div class="btn-row">
+        <button class="btn" id="inspectBtn" type="button">Inspect frontmatter</button>
+        <span class="mini" id="docStats"></span>
+      </div>
+    </section>
+
+    <!-- 2 · manifest -->
+    <section class="card hidden" id="panel-manifest">
+      <p class="eyebrow">Step 2 · Manifest</p>
+      <h2 id="manifestTitle">Manifest</h2>
+      <div id="manifestBody"></div>
+    </section>
+
+    <!-- 3 · council config -->
+    <section class="card hidden" id="panel-council">
+      <p class="eyebrow">Step 3 · Council</p>
+      <h2>Convene the council</h2>
+      <p class="lede">Seats are (model × persona) pairs. Mock mode runs deterministic heuristic reviewers —
+        no API keys needed; live modes read keys from the server environment.</p>
+      <div class="row">
+        <div class="col">
+          <label class="fld" for="providerSel">Default provider</label>
+          <select id="providerSel"></select>
+          <div class="mini">Models are assigned per seat in the chamber below. Ids may pin a vendor:
+            <span class="mono">anthropic:…, openai:…, gemini:…, xai:…</span> — endpoints and the default
+            bench are server configuration (<span class="mono">*_BASE_URL</span>,
+            <span class="mono">GAGE_DEFAULT_MODELS</span>), so internal gateways work without code changes.</div>
+        </div>
+        <div class="col">
+          <label class="fld" for="policySel">Disposition policy</label>
+          <select id="policySel"></select>
+          <div class="mini" id="policyNote"></div>
+        </div>
+      </div>
+      <label class="fld">Council layout</label>
+      <div>
+        <label><input type="radio" name="layoutMode" value="round_robin" checked>
+          Round-robin — one seat per charter; bench models cycle, any seat can be reassigned</label><br>
+        <label><input type="radio" name="layoutMode" value="matrix">
+          <b>Adversarial matrix</b> — every charter × every bench model
+          <span class="mini">(each charter argued by all families · model-blind cross-exam · cross-vendor consensus)</span></label>
+      </div>
+      <label class="fld">Council composition</label>
+      <div>
+        <label><input type="radio" name="councilMode" value="auto" checked>
+          Auto — core personas + genre-profile specialists <span class="mini">(recommended)</span></label><br>
+        <label><input type="radio" name="councilMode" value="custom"> Custom selection</label>
+      </div>
+      <div id="personaPick" class="hidden" style="margin-top:10px"></div>
+      <div class="btn-row">
+        <button class="btn" id="runBtn" type="button">Run evaluation</button>
+        <span class="mini" id="runNote"></span>
+      </div>
+    </section>
+
+    <!-- 3b · chamber -->
+    <section class="card hidden" id="panel-chamber">
+      <p class="eyebrow">The council</p>
+      <h2>Chamber — who holds which seat</h2>
+      <p class="lede">The matrix is the assignment: rows are <b>charters</b>, columns are the <b>models on the
+        bench</b>, and every cell is a seat. Add models to the bench below, then click cells to assign
+        (round-robin: one model per charter) or to seat/vacate pairs (matrix) — or type a model id directly on a
+        seat's row to give that seat its own model. During the run each cell reports live — findings land in the
+        cell the moment that model produces them. <b>Click any cell, any time, to open that seat's full
+        evaluation</b>: charter, scores, findings, and the cross-exam it gave and received. The chairman bar
+        assigns the judge. Ink monogram = contrarian, outlined = genre specialist; the grid locks at convening
+        and mirrors the frozen plan.</p>
+      <div class="bench-bar" id="benchBar">
+        <input type="text" id="benchInput" list="benchList" aria-label="Model id to add to the bench"
+          placeholder="anthropic:claude-…, openai:gpt-…, gemini:gemini-…, xai:grok-…">
+        <button class="btn ghost" id="benchAddBtn" type="button">Add model to the bench</button>
+      </div>
+      <datalist id="benchList"></datalist>
+      <div class="chamber" id="chamberBox" aria-label="Council seats around the artifact"></div>
+      <div class="chairman-bar" id="chairmanBar"></div>
+      <div id="seatInspector" class="hidden" aria-live="polite"></div>
+      <div class="chamber-caption">
+        <span id="chamberStatus">Awaiting convening.</span>
+        <span class="legend">
+          <span><i style="background:var(--line)"></i>idle</span>
+          <span><i style="background:var(--seal);box-shadow:0 0 0 3px var(--seal-soft)"></i>deliberating</span>
+          <span><i style="background:var(--seal)"></i>reported</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- 4 · results -->
+    <section class="card hidden" id="panel-results">
+      <p class="eyebrow">Step 4 · Deliberation record</p>
+      <h2>Council results</h2>
+      <div class="tabs" role="tablist" id="resultTabs">
+        <button class="tab" role="tab" aria-selected="true" data-tab="report" type="button">Report</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="critiques" type="button">Critiques</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="crossexam" type="button">Cross-exam</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="evidence" type="button">Evidence</button>
+      </div>
+      <div id="tab-report"></div>
+      <div id="tab-critiques" class="hidden"></div>
+      <div id="tab-crossexam" class="hidden"></div>
+      <div id="tab-evidence" class="hidden"></div>
+    </section>
+
+    <!-- 5 · authorize -->
+    <section class="card hidden" id="panel-authorize">
+      <p class="eyebrow">Step 5 · Authorization</p>
+      <h2>Human decision</h2>
+      <p class="lede">The council recommends; it never decides. Accepting over blocking findings requires a
+        recorded dismissal reason for each — that record goes into the seal.</p>
+      <div id="authorizeBody"></div>
+    </section>
+
+    <!-- 6 · seal -->
+    <section class="card hidden" id="panel-seal">
+      <p class="eyebrow">Sealed</p>
+      <h2>Evidence seal</h2>
+      <div id="sealBody"></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ============================ helpers ============================ */
+function el(id){ return document.getElementById(id); }
+function esc(s){
+  if (s === null || s === undefined) return "";
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+var toastTimer = null;
+function toast(msg, ms){
+  var t = el("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove("show"); }, ms || 4200);
+}
+/* Every error reaches the console — uncaught, unhandled, or swallowed by a chain. */
+window.addEventListener("error", function(ev){
+  console.error("[gage] uncaught error:", ev.error || ev.message);
+});
+window.addEventListener("unhandledrejection", function(ev){
+  console.error("[gage] unhandled promise rejection:", ev.reason);
+  toast("Unexpected error: " + (ev.reason && ev.reason.message ? ev.reason.message : String(ev.reason)));
+});
+function api(path, opts){
+  opts = opts || {};
+  if (opts.body && typeof opts.body !== "string"){
+    opts.body = JSON.stringify(opts.body);
+    opts.headers = {"Content-Type":"application/json"};
+  }
+  return fetch(path, opts).then(function(r){
+    return r.text().then(function(txt){
+      var data = null;
+      try { data = txt ? JSON.parse(txt) : null; } catch(e){ data = {detail: txt}; }
+      if (!r.ok){
+        var msg = (data && data.detail) ? (typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail)) : (r.status + " " + r.statusText);
+        var err = new Error(msg); err.status = r.status; throw err;
+      }
+      return data;
+    });
+  }).catch(function(e){
+    console.error("[gage] API call failed:", path, "—", e.status || "network", e.message || e);
+    throw e;
+  });
+}
+function fmtTime(iso){
+  if (!iso) return "";
+  try { return new Date(iso).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"}); }
+  catch(e){ return ""; }
+}
+function nowTime(){ return new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"}); }
+function dots(median){
+  var filled = Math.round(median), out = "";
+  for (var i = 1; i <= 5; i++) out += i <= filled ? "●" : '<span class="off">●</span>';
+  return '<span class="scoredots" title="median ' + median + '/5">' + out + "</span>";
+}
+function meter(frac, color){
+  var pct = Math.max(0, Math.min(100, Math.round(frac * 100)));
+  return '<span class="meter" aria-hidden="true"><i style="width:' + pct + '%' +
+         (color ? ";background:" + color : "") + '"></i></span>';
+}
+
+/* ============================ state ============================ */
+var S = {
+  registry: null,
+  text: "",          // raw text as submitted
+  applied: "",       // text with manifest injected (or original if it had one)
+  manifest: null,
+  inspect: null,
+  runId: null,
+  run: null,
+  pollTimer: null,
+  pollStart: 0,
+  activeSeat: null,
+  bench: [],          // models added to the bench: grid columns; round-robin cycles them
+  seatModel: {},      // round-robin: persona -> assigned model (any id, not just bench)
+  cellOff: {},        // matrix: "persona|model" cells vacated by the user
+  inspectSeat: null,  // seat id currently open in the inspector
+  judgeModel: ""      // chairman / judge model
+};
+
+var SAMPLE = "# RFC: Migrate tenant ingress from NGINX to Istio\n\nWe propose migrating tenant routing for the platform from NGINX ingress\ncontrollers to an Istio service mesh. This will give us mTLS between\nservices, richer traffic policy, and per-tenant ABAC enforcement at the mesh\nlayer. The migration guarantees zero downtime for all tenants.\n\n## Context\n\nThe platform currently serves 40 tenants through a shared NGINX ingress\nlayer. Policy enforcement happens in application middleware, which has\ndrifted across services. Latency through the current path averages 12 ms.\n\n## Decision\n\nAdopt Istio with a phased, per-tenant migration. Each tenant moves behind an\nIstio gateway with a VirtualService per seal. Authorization moves to\nAuthorizationPolicy resources generated from the ABAC policy store. We\nexpect a 30% reduction in policy-related incidents.\n\n## Alternatives\n\nWe considered staying on NGINX with OPA sidecars, and a managed API gateway.\nNGINX+OPA keeps the data plane simple but leaves mTLS unsolved. The managed\ngateway introduces a hard vendor dependency and per-request pricing.\n\n## Migration plan\n\nTenants migrate in cohorts of five per week. A canary cohort runs for two\nweeks with TODO success criteria. DNS cutover happens per tenant.\n\n## Operations\n\nMesh telemetry flows into the existing dashboards. SLO is 99.95% for the\ningress path.\n";
+
+/* ============================ rail ============================ */
+function setNode(key, state, meta){
+  var n = el("node-" + key);
+  n.classList.remove("active","done","error");
+  if (state) n.classList.add(state);
+  if (meta !== undefined) el("meta-" + key).innerHTML = meta;
+}
+
+/* ============================ init ============================ */
+function init(){
+  function applyRegistry(reg){
+    // provider badge + select
+    var avail = reg.providers_available || {mock:true};
+    var vendors = ["anthropic", "openai", "gemini", "xai", "openrouter"];
+    var status = reg.provider_status || {};
+    var live = vendors.filter(function(v){ return avail[v]; });
+    el("providerBadge").textContent = live.length
+      ? "providers: " + live.map(function(v){
+          var st = status[v] || {};
+          var tag = st.endpoint ? "internal endpoint" : st.source;
+          return v + (tag ? " (" + tag + ")" : "");
+        }).join(" · ")
+      : "mock only · add keys or internal endpoints via environment or a .env file";
+    // default bench: one frontier model per available provider, so every seat
+    // starts with an assignment; a keyless install keeps the labels for the
+    // offline mock demo. All of it remains editable in the chamber.
+    if (!S.bench.length){
+      var defs = reg.default_models || [];
+      S.bench = live.length
+        ? defs.filter(function(m){
+            var i = m.indexOf(":");
+            return i === -1 || avail[m.slice(0, i)];
+          })
+        : defs.slice();
+    }
+    var psel = el("providerSel");
+    psel.innerHTML = "";
+    [["mock","Mock council (deterministic, keyless)"],
+     ["anthropic","Anthropic API"],
+     ["openai","OpenAI API"],
+     ["gemini","Gemini API (Google)"],
+     ["xai","xAI API (Grok)"],
+     ["openrouter","OpenRouter (every vendor, one key)"]].forEach(function(p){
+      var o = document.createElement("option");
+      o.value = p[0]; o.textContent = p[1];
+      if (!avail[p[0]]){ o.disabled = true; o.textContent += " — no key (set env var or .env)"; }
+      psel.appendChild(o);
+    });
+    psel.value = "mock";
+    // policies
+    var pol = el("policySel");
+    pol.innerHTML = "";
+    (reg.policies || []).forEach(function(p){
+      var o = document.createElement("option");
+      o.value = p.id; o.textContent = p.id;
+      o.setAttribute("data-summary", p.summary || "");
+      pol.appendChild(o);
+    });
+    pol.value = "default-v2";
+    syncPolicyNote();
+    // personas
+    var pick = el("personaPick");
+    pick.innerHTML = (reg.personas || []).map(function(p){
+      return '<label style="display:block;margin:4px 0"><input type="checkbox" value="' + esc(p.name) + '"' +
+        (p.core ? " checked" : "") + "> <b>" + esc(p.title) + "</b>" +
+        (p.core ? ' <span class="chip core">core</span>' : "") +
+        ' <span class="mini">— ' + esc((p.mandate || "").slice(0, 110)) + "…</span></label>";
+    }).join("");
+  }
+  api("/api/registry").then(function(reg){
+    S.registry = reg;
+    try {
+      applyRegistry(reg);
+    } catch (err){
+      console.error("[gage] UI initialization from registry failed:", err);
+      el("providerBadge").textContent = "UI init error — see console";
+      toast("UI initialization error: " + err.message);
+    }
+  }).catch(function(e){
+    console.error("[gage] registry fetch failed:", e);
+    el("providerBadge").textContent = "registry unavailable";
+    toast("Could not load registry: " + e.message);
+  });
+
+  /* intake events */
+  el("sampleBtn").addEventListener("click", function(){
+    el("docText").value = SAMPLE; updateStats();
+    toast("Sample RFC loaded — deliberately flawed, so the council has something to find.");
+  });
+  el("browseBtn").addEventListener("click", function(){ el("fileInput").click(); });
+  el("fileInput").addEventListener("change", function(ev){
+    var f = ev.target.files && ev.target.files[0];
+    if (f) readFile(f);
+  });
+  var dz = el("dropzone");
+  ["dragenter","dragover"].forEach(function(t){
+    dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.add("drag"); });
+  });
+  ["dragleave","drop"].forEach(function(t){
+    dz.addEventListener(t, function(e){ e.preventDefault(); dz.classList.remove("drag"); });
+  });
+  dz.addEventListener("drop", function(e){
+    var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) readFile(f);
+  });
+  el("docText").addEventListener("input", updateStats);
+  el("inspectBtn").addEventListener("click", onInspect);
+  el("resetBtn").addEventListener("click", function(){ location.reload(); });
+
+  /* council events */
+  el("providerSel").addEventListener("change", renderChamberSafe);
+  el("policySel").addEventListener("change", function(){ syncPolicyNote(); renderChamberSafe(); });
+  el("personaPick").addEventListener("change", renderChamberSafe);
+  function addBenchModels(){
+    splitCSV(el("benchInput").value).forEach(function(m){
+      if (S.bench.indexOf(m) === -1) S.bench.push(m);
+    });
+    el("benchInput").value = "";
+    renderChamberSafe();
+  }
+  el("benchAddBtn").addEventListener("click", addBenchModels);
+  el("benchInput").addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ e.preventDefault(); addBenchModels(); }
+  });
+  function chamberChange(e){
+    var t = e.target;
+    if (t && t.classList && t.classList.contains("s-model-inp")){
+      var v = t.value.trim();
+      if (t.getAttribute("data-judge")) S.judgeModel = v;
+      else if (v) S.seatModel[t.getAttribute("data-persona")] = v;
+      else delete S.seatModel[t.getAttribute("data-persona")];
+      renderChamberSafe();
+    }
+  }
+  el("chamberBox").addEventListener("change", chamberChange);
+  el("chairmanBar").addEventListener("change", chamberChange);
+  el("chamberBox").addEventListener("click", chamberCellClick);
+  el("chamberBox").addEventListener("keydown", function(e){
+    if ((e.key === "Enter" || e.key === " ") && e.target.getAttribute &&
+        e.target.getAttribute("data-cell")){ e.preventDefault(); chamberCellClick(e); }
+  });
+  el("seatInspector").addEventListener("click", function(e){
+    if (e.target.closest && e.target.closest("[data-close]")){
+      S.inspectSeat = null;
+      el("seatInspector").classList.add("hidden");
+    }
+  });
+  el("howitBtn").addEventListener("click", function(){
+    var p = el("panel-howit");
+    var open = p.classList.toggle("hidden");
+    el("howitBtn").setAttribute("aria-expanded", open ? "false" : "true");
+    if (!open) p.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name=layoutMode]'), function(r){
+    r.addEventListener("change", renderChamberSafe);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('input[name=councilMode]'), function(r){
+    r.addEventListener("change", function(){
+      el("personaPick").classList.toggle("hidden", getCouncilMode() !== "custom");
+      renderChamberSafe();
+    });
+  });
+  el("runBtn").addEventListener("click", onRun);
+
+  /* result tabs */
+  Array.prototype.forEach.call(document.querySelectorAll("#resultTabs .tab"), function(btn){
+    btn.addEventListener("click", function(){
+      Array.prototype.forEach.call(document.querySelectorAll("#resultTabs .tab"), function(b){
+        b.setAttribute("aria-selected", b === btn ? "true" : "false");
+      });
+      ["report","critiques","crossexam","evidence"].forEach(function(t){
+        el("tab-" + t).classList.toggle("hidden", t !== btn.getAttribute("data-tab"));
+      });
+    });
+  });
+}
+function readFile(f){
+  var r = new FileReader();
+  r.onload = function(){ el("docText").value = r.result; updateStats(); };
+  r.onerror = function(){ toast("Could not read file."); };
+  r.readAsText(f);
+}
+function updateStats(){
+  var t = el("docText").value;
+  var words = t.trim() ? t.trim().split(/\s+/).length : 0;
+  el("docStats").textContent = words ? words + " words · " + t.length + " chars" : "";
+}
+function getCouncilMode(){
+  var r = document.querySelector('input[name=councilMode]:checked');
+  return r ? r.value : "auto";
+}
+function getLayoutMode(){
+  var r = document.querySelector('input[name=layoutMode]:checked');
+  return r ? r.value : "round_robin";
+}
+function syncPolicyNote(){
+  var sel = el("policySel");
+  var opt = sel.options[sel.selectedIndex];
+  el("policyNote").textContent = opt ? (opt.getAttribute("data-summary") || "") : "";
+}
+
+/* ============================ step 1: inspect ============================ */
+function onInspect(){
+  var text = el("docText").value;
+  if (!text.trim()){ toast("Paste or upload a document first."); return; }
+  S.text = text;
+  el("inspectBtn").disabled = true;
+  setNode("intake", "active", "inspecting frontmatter…");
+  api("/api/inspect", {method:"POST", body:{text:text}}).then(function(res){
+    S.inspect = res;
+    el("panel-manifest").classList.remove("hidden");
+    renderManifestPanel(res);
+    el("panel-manifest").scrollIntoView({behavior:"smooth", block:"start"});
+  }).catch(function(e){
+    setNode("intake", "error", "inspect failed");
+    toast("Inspect failed: " + e.message);
+  }).then(function(){ el("inspectBtn").disabled = false; });
+}
+
+function renderManifestPanel(res){
+  var box = el("manifestBody");
+  if (res.has_manifest){
+    el("manifestTitle").textContent = "Manifest found in frontmatter";
+    setNode("intake", "active", "manifest present · " + res.body_words + " words");
+    box.innerHTML =
+      '<div class="notice">This document already carries a <span class="mono">manifest:</span> block. ' +
+      "Review it, edit if needed, or proceed straight to the council.</div>" +
+      manifestSummary(res.manifest) +
+      '<div class="btn-row">' +
+      '<button class="btn" id="proceedBtn" type="button">Proceed with this manifest</button>' +
+      '<button class="btn ghost" id="editBtn" type="button">Edit manifest</button></div>';
+    el("proceedBtn").addEventListener("click", function(){
+      S.applied = S.text; S.manifest = res.manifest;
+      manifestApplied(res.manifest, false);
+    });
+    el("editBtn").addEventListener("click", function(){ renderManifestForm(res.manifest, true); });
+  } else {
+    el("manifestTitle").textContent = "No manifest — draft one";
+    setNode("intake", "active", "manifest absent · drafting");
+    var note = res.manifest_error
+      ? '<div class="notice bad"><b>Frontmatter problem:</b> ' + esc(res.manifest_error) + "</div>"
+      : '<div class="notice warn"><b>No manifest in frontmatter.</b> A manifest declares what this document ' +
+        "must accomplish, for whom, and the non-negotiables — without it, evaluation is undefined. " +
+        "GAGE drafted one below; it is a <b>draft for your confirmation</b>, never silently applied.</div>";
+    box.innerHTML = note;
+    renderManifestForm(res.inferred || {}, false);
+  }
+}
+
+function manifestSummary(m){
+  function list(a){ return (a && a.length) ? esc(a.join(", ")) : '<span class="mini">—</span>'; }
+  var crit = (m.acceptance_criteria && m.acceptance_criteria.length)
+    ? "<ul style='margin:4px 0 0;padding-left:18px'>" + m.acceptance_criteria.map(function(c){
+        return "<li>" + esc(c) + "</li>"; }).join("") + "</ul>"
+    : '<span class="mini">—</span>';
+  return '<dl class="kv">' +
+    "<dt>id</dt><dd class='mono'>" + esc(m.id) + "</dd>" +
+    "<dt>type</dt><dd>" + esc(m.type) + "</dd>" +
+    "<dt>purpose</dt><dd>" + esc(m.purpose) + "</dd>" +
+    "<dt>audience</dt><dd>" + list(m.audience) + "</dd>" +
+    "<dt>acceptance criteria</dt><dd>" + crit + "</dd>" +
+    "<dt>constraints</dt><dd>" + list(m.constraints) + "</dd>" +
+    "</dl>";
+}
+
+function renderManifestForm(d, isEdit){
+  var box = el("manifestBody");
+  var form = document.createElement("div");
+  form.id = "manifestForm";
+  var types = (S.registry && S.registry.types ? S.registry.types.map(function(t){ return t.name; }) : []);
+  var typeOpts = types.concat(["unknown"]).map(function(t){
+    return '<option value="' + esc(t) + '"' + (t === (d.type || "unknown") ? " selected" : "") + ">" + esc(t) + "</option>";
+  }).join("");
+  var inferNote = "";
+  if (!isEdit && d.inference_method){
+    inferNote = '<p class="mini" style="margin:8px 0 0">Drafted via <b>' + esc(d.inference_method) + "</b>" +
+      (d.confidence ? " · confidence: " + esc(d.confidence) : "") +
+      (d.type_rationale ? " · " + esc(d.type_rationale) : "") + "</p>";
+  }
+  form.innerHTML =
+    '<div class="row">' +
+      '<div class="col"><label class="fld" for="mfId">Artifact id</label>' +
+      '<input type="text" id="mfId" value="' + esc(d.id || "") + '"></div>' +
+      '<div class="col"><label class="fld" for="mfType">Type <span class="hint">(binds the genre profile)</span></label>' +
+      '<select id="mfType">' + typeOpts + "</select><div class='mini' id='mfTypeNote'></div></div>" +
+    "</div>" +
+    '<label class="fld" for="mfPurpose">Purpose <span class="hint">— what must this document accomplish to succeed?</span></label>' +
+    '<textarea id="mfPurpose" rows="3">' + esc(d.purpose || "") + "</textarea>" +
+    '<div class="row">' +
+      '<div class="col"><label class="fld" for="mfAudience">Audience <span class="hint">(comma-separated)</span></label>' +
+      '<input type="text" id="mfAudience" value="' + esc((d.audience || []).join(", ")) + '" placeholder="platform-eng, security-review-board"></div>' +
+      '<div class="col"><label class="fld" for="mfConstraints">Constraints <span class="hint">(comma-separated; e.g. sox)</span></label>' +
+      '<input type="text" id="mfConstraints" value="' + esc((d.constraints || []).join(", ")) + '" placeholder="sox, internal-style-v2"></div>' +
+    "</div>" +
+    '<label class="fld">Acceptance criteria <span class="hint">— instance-level musts; each becomes a binary gate every seat checks</span></label>' +
+    '<div id="critList"></div>' +
+    '<button class="btn ghost" id="addCritBtn" type="button">+ Add criterion</button>' +
+    inferNote +
+    '<div class="btn-row"><button class="btn" id="applyBtn" type="button">' +
+    (isEdit ? "Re-inject manifest" : "Apply manifest to document") + "</button>" +
+    '<span class="mini">Injected under the <span class="mono">manifest:</span> key; other frontmatter is preserved.</span></div>';
+  // replace any prior form
+  var old = el("manifestForm");
+  if (old) old.parentNode.removeChild(old);
+  box.appendChild(form);
+
+  function addCrit(v){
+    var row = document.createElement("div");
+    row.className = "crit-row";
+    row.innerHTML = '<input type="text" value="' + esc(v || "") + '" placeholder="e.g. Names a rollback path executable in under 30 minutes">' +
+      '<button class="icon-btn" type="button" title="Remove" aria-label="Remove criterion">✕</button>';
+    row.querySelector("button").addEventListener("click", function(){ row.remove(); });
+    el("critList").appendChild(row);
+  }
+  (d.acceptance_criteria && d.acceptance_criteria.length ? d.acceptance_criteria : [""]).forEach(addCrit);
+  el("addCritBtn").addEventListener("click", function(){ addCrit(""); });
+
+  function typeNote(){
+    var t = el("mfType").value, info = null;
+    if (S.registry) (S.registry.types || []).forEach(function(x){ if (x.name === t) info = x; });
+    el("mfTypeNote").textContent = info
+      ? (info.summary || "") + (info.gating && info.gating.length ? " · gates: " + info.gating.join(", ") : "")
+      : "Unknown type — universal dimensions only (the Rubricator path).";
+  }
+  el("mfType").addEventListener("change", typeNote);
+  typeNote();
+
+  el("applyBtn").addEventListener("click", function(){
+    var manifest = {
+      id: el("mfId").value.trim(),
+      type: el("mfType").value,
+      purpose: el("mfPurpose").value.trim(),
+      audience: splitCSV(el("mfAudience").value),
+      acceptance_criteria: Array.prototype.map.call(
+        document.querySelectorAll("#critList input"), function(i){ return i.value.trim(); }
+      ).filter(function(v){ return v; }),
+      constraints: splitCSV(el("mfConstraints").value),
+      generation_provenance: {method: d.inference_method || "human", confirmed_by: "human-ui"}
+    };
+    if (!manifest.id){ toast("Artifact id is required."); return; }
+    if (!manifest.purpose){ toast("Purpose is required — evaluation is undefined without it."); return; }
+    el("applyBtn").disabled = true;
+    api("/api/manifest/apply", {method:"POST", body:{text:S.text, manifest:manifest}})
+      .then(function(res){
+        S.applied = res.text; S.manifest = res.manifest;
+        manifestApplied(res.manifest, true);
+      })
+      .catch(function(e){ toast("Apply failed: " + e.message); })
+      .then(function(){
+        // success replaces the form (and this button) with the bound-manifest view
+        var b = el("applyBtn");
+        if (b) b.disabled = false;
+      });
+  });
+}
+function splitCSV(s){
+  return s.split(",").map(function(x){ return x.trim(); }).filter(function(x){ return x; });
+}
+
+function manifestApplied(manifest, injected){
+  setNode("intake", "done", "manifest bound · " + nowTime());
+  var fmMatch = S.applied.match(/^---\n[\s\S]*?\n---/);
+  var fm = fmMatch ? fmMatch[0] : "(frontmatter not found?)";
+  var box = el("manifestBody");
+  box.innerHTML =
+    '<div class="notice"><b>' + (injected ? "Manifest injected." : "Manifest accepted.") +
+    "</b> The document is now evaluable — type <b>" + esc(manifest.type) + "</b> binds its genre profile, " +
+    "and every acceptance criterion becomes a hard gate.</div>" +
+    manifestSummary(manifest) +
+    '<details class="fm"><summary>View injected frontmatter</summary><pre>' + esc(fm) + "</pre></details>" +
+    '<div class="btn-row">' +
+    '<button class="btn ghost" id="downloadDocBtn" type="button">Download document with manifest</button>' +
+    '<button class="btn quiet" id="reEditBtn" type="button">Edit again</button></div>';
+  el("downloadDocBtn").addEventListener("click", function(){
+    var blob = new Blob([S.applied], {type:"text/markdown"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (manifest.id || "artifact") + ".md";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  });
+  el("reEditBtn").addEventListener("click", function(){
+    renderManifestPanel({has_manifest:true, manifest:manifest, body_words:(S.applied.split(/\s+/).length)});
+    renderManifestForm(manifest, true);
+  });
+  el("panel-council").classList.remove("hidden");
+  el("panel-chamber").classList.remove("hidden");
+  renderChamberSafe();
+  el("panel-council").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* ============================ step 3: run ============================ */
+function onRun(){
+  if (!S.applied){ toast("Apply a manifest first."); return; }
+  var mode = el("providerSel").value;
+  var layout = getLayoutMode();
+  var spec = chamberSeatSpec();
+  var distinct = [];
+  spec.forEach(function(s){
+    if (s.model && s.model !== "(set model)" && distinct.indexOf(s.model) === -1) distinct.push(s.model);
+  });
+  if (mode !== "mock" && !distinct.length){
+    toast("Assign at least one model — add models to the bench in the chamber."); return;
+  }
+  if (layout === "matrix" && distinct.length < 2 && mode !== "mock"){
+    toast("A matrix needs at least 2 models on the bench — otherwise it is one family judging itself."); return;
+  }
+  var judge = currentJudgeModel();
+  if (mode !== "mock" && (!judge || judge === "(set model)")){
+    toast("Assign the judge a model — use the chairman bar."); return;
+  }
+  var payload = {
+    text: S.applied,
+    provider_mode: mode,
+    layout: layout,
+    model: distinct.length ? distinct[0] : "",
+    models: distinct,
+    seats: null,
+    chairman_model: judge === "mock" ? "" : judge,
+    policy_id: el("policySel").value,
+    personas: null
+  };
+  if (spec.length < 2){ toast("Seat at least 2 charters — cross-examination needs peers."); return; }
+  if (mode !== "mock" && spec.some(function(s){ return !s.model || s.model === "(set model)"; })){
+    toast("Every seat needs a model — assign one on each seat row in the chamber."); return;
+  }
+  if (layout === "matrix"){
+    var seated = {};
+    spec.forEach(function(s){ seated[s.persona] = 1; });
+    var bare = councilNames().filter(function(n){ return !seated[n]; });
+    if (bare.length){ toast("Charter(s) with no model seated: " + bare.join(", ")); return; }
+  }
+  payload.seats = spec.map(function(s){ return {persona: s.persona, model: s.model === "mock" ? "" : s.model}; });
+  el("runBtn").disabled = true;
+  el("runNote").textContent = "convening…";
+  api("/api/evaluate", {method:"POST", body:payload}).then(function(res){
+    S.runId = res.run_id;
+    S.pollStart = Date.now();
+    el("runNote").innerHTML = 'run <span class="mono">' + esc(res.run_id) + "</span>";
+    setNode("critique", "active", "seats deliberating…");
+    poll();
+  }).catch(function(e){
+    el("runBtn").disabled = false;
+    el("runNote").textContent = "";
+    toast("Evaluate failed: " + e.message);
+  });
+}
+
+function poll(){
+  clearTimeout(S.pollTimer);
+  if (Date.now() - S.pollStart > 10 * 60 * 1000){
+    toast("Run timed out after 10 minutes of polling."); el("runBtn").disabled = false; return;
+  }
+  api("/api/runs/" + S.runId).then(function(run){
+    S.run = run;
+    renderChamberSafe();
+    var st = run.stages || {};
+    if (st.critique){
+      var c = st.critique;
+      var done = (typeof c.done === "number") ? c.done : (c.done ? c.total : 0);
+      if (done >= c.total && c.total){ setNode("critique", "done", c.total + "/" + c.total + " seats"); }
+      else if (run.stage === "critique"){ setNode("critique", "active", done + "/" + c.total + " seats"); }
+    }
+    if (st.crossexam){
+      var x = st.crossexam;
+      var xd = (typeof x.done === "number") ? x.done : (x.done ? x.total : 0);
+      if (xd >= x.total && x.total){ setNode("crossexam", "done", x.total + "/" + x.total + " adjudicated"); }
+      else if (run.stage === "crossexam"){ setNode("crossexam", "active", xd + "/" + x.total + " adjudicated"); }
+      else if (run.stage === "critique"){ setNode("crossexam", "", "anonymized"); }
+    }
+    if (run.stage === "synthesis" && run.status === "running"){
+      setNode("synthesis", "active", "consolidating + policy");
+    }
+    if (run.status === "awaiting_authorization"){
+      setNode("synthesis", "done", "disposition: " + (run.report ? run.report.disposition : "?"));
+      setNode("seal", "active", "awaiting human decision");
+      onRunFinished(run);
+      return;
+    }
+    if (run.status === "error"){
+      setNode(run.stage === "crossexam" ? "crossexam" : (run.stage === "synthesis" ? "synthesis" : "critique"),
+              "error", "failed");
+      toast("Run failed: " + run.error);
+      el("runBtn").disabled = false;
+      return;
+    }
+    if (run.status === "sealed"){ onRunFinished(run); return; }
+    S.pollTimer = setTimeout(poll, 800);
+  }).catch(function(e){
+    toast("Polling error: " + e.message);
+    S.pollTimer = setTimeout(poll, 2000);
+  });
+}
+
+/* ============================ results ============================ */
+function onRunFinished(run){
+  el("runBtn").disabled = false;
+  el("panel-results").classList.remove("hidden");
+  renderReport(run);
+  renderCritiques(run);
+  renderCrossExam(run);
+  renderEvidence(run);
+  if (run.status === "awaiting_authorization"){
+    el("panel-authorize").classList.remove("hidden");
+    renderAuthorize(run);
+  }
+  el("panel-results").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+var VERDICT_WORD = {
+  approve: "Approve (recommended)",
+  approve_with_conditions: "Approve with conditions",
+  revise: "Revise",
+  reject: "Reject"
+};
+
+function renderReport(run){
+  var r = run.report;
+  if (!r){ el("tab-report").innerHTML = "<p class='mini'>No report.</p>"; return; }
+  var h = "";
+  h += '<div class="verdict ' + esc(r.disposition) + '">' +
+       '<div><div class="v-word">' + esc(VERDICT_WORD[r.disposition] || r.disposition) + "</div>" +
+       '<div class="v-sub">computed mechanically by policy <b>' + esc(r.policy_id) + "</b> · rule: <span class='mono'>" +
+       esc(r.fired_rule) + "</span> · the chairman may dissent but cannot override</div></div></div>";
+
+  if (r.anomaly_flags && r.anomaly_flags.length){
+    h += r.anomaly_flags.map(function(a){
+      return '<div class="anomaly">⚑ ' + esc(a) + "</div>";
+    }).join("");
+  }
+  (((run || {}).plan || {}).coverage_notes || []).forEach(function(note){
+    h += '<div class="notice warn"><b>Matrix coverage:</b> ' + esc(note) + "</div>";
+  });
+
+  h += '<div class="subhead">Chairman synthesis</div><p style="margin:0 0 6px">' + esc(r.chairman_narrative) + "</p>";
+  if (r.chairman_dissent){
+    h += '<div class="notice warn"><b>Chairman dissent (recorded, non-binding):</b> ' + esc(r.chairman_dissent) + "</div>";
+  }
+
+  /* dimensions */
+  h += '<div class="subhead">Dimensions</div><div class="tbl-wrap"><table><thead><tr>' +
+       "<th>Dimension</th><th>Layer</th><th>Median</th><th>Dispersion</th><th>Seat scores</th></tr></thead><tbody>";
+  (r.dimension_summaries || []).forEach(function(d){
+    h += "<tr><td><b>" + esc(d.dimension) + "</b>" +
+         (d.gating ? ' <span class="chip gate">gate</span>' : "") + "</td>" +
+         "<td class='mini'>" + esc(d.source) + "</td>" +
+         "<td>" + dots(d.median) + " <span class='mini'>" + d.median + "</span></td>" +
+         "<td><span style='display:inline-flex;align-items:center;gap:8px'>" +
+         meter(d.dispersion / 2, d.dispersion > 1 ? "var(--cond)" : "var(--seal)") +
+         "<span class='mini'>" + d.dispersion + "</span></span></td>" +
+         "<td class='mono mini'>" + esc((d.scores || []).join(" ")) + "</td></tr>";
+  });
+  h += "</tbody></table></div>";
+  h += '<p class="mini" style="margin:6px 0 0">Dispersion is disagreement between seats — it is signal, not noise. ' +
+       "High dispersion on a gating dimension is exactly where a human should look first.</p>";
+
+  /* instance checks */
+  if (r.instance_check_results && r.instance_check_results.length){
+    h += '<div class="subhead">Instance acceptance criteria</div>';
+    r.instance_check_results.forEach(function(c){
+      h += '<div class="finding" style="border-left:4px solid ' + (c.failed ? "var(--rej)" : "var(--ok)") + '">' +
+        '<div class="f-head"><span class="chip ' + (c.failed ? "blocking" : "suggestion") + '">' +
+        (c.failed ? "FAIL" : "PASS") + "</span><b>" + esc(c.criterion) + "</b></div>" +
+        '<div class="mini">' + c.passes + " seat(s) pass · " + c.fails + " fail" +
+        (c.citations && c.citations.length ? " · e.g. " + esc(c.citations[0]) : "") + "</div></div>";
+    });
+  }
+
+  /* charter compliance */
+  if (r.charter_compliance && r.charter_compliance.length){
+    var breaches = r.charter_compliance.filter(function(cc){ return !cc.met; }).length;
+    h += '<div class="subhead">Charter compliance — ' +
+         (breaches ? breaches + " breach(es)" : "all charters discharged") + "</div>" +
+         '<div class="tbl-wrap"><table><thead><tr><th>Seat</th><th>Charter</th><th>Model</th>' +
+         "<th>Obligations</th></tr></thead><tbody>";
+    r.charter_compliance.forEach(function(cc){
+      var obs = (cc.obligations || []).map(function(o){
+        return (o.met ? "✓ " : "✕ ") + esc(o.id) + (o.met ? "" : " — " + esc(o.detail));
+      }).join("<br>");
+      h += "<tr" + (cc.met ? "" : ' style="background:var(--rej-soft)"') +
+           '><td class="mono mini">' + esc(cc.seat_id) + "</td><td>" + esc(personaTitle(cc.persona)) +
+           "</td><td>" + modelChip(cc.model) + "</td><td class='mini'>" + (obs || "—") + "</td></tr>";
+    });
+    h += "</tbody></table></div>";
+  }
+
+  /* findings */
+  h += '<div class="subhead">Consolidated findings (' + (r.findings || []).length + ")</div>";
+  if (!r.findings || !r.findings.length){
+    h += "<p class='mini'>The council raised no findings.</p>";
+  } else {
+    r.findings.forEach(function(f){ h += findingCard(f, false); });
+  }
+
+  /* disagreements */
+  if (r.disagreements && r.disagreements.length){
+    h += '<div class="subhead">Unresolved disagreements</div>';
+    r.disagreements.forEach(function(d){
+      h += '<div class="notice warn"><b>' + d.confirms + " confirm / " + d.rejects + " reject:</b> " +
+           esc(d.statement) + ' <span class="mini">' + esc(d.note) + "</span></div>";
+    });
+  }
+  el("tab-report").innerHTML = h;
+}
+
+function findingCard(f, compact){
+  var h = '<div class="finding">';
+  h += '<div class="f-head"><span class="chip ' + esc(f.severity) + '">' + esc(f.severity) + "</span>" +
+       '<span class="chip kind">' + esc(f.kind) + "</span>" +
+       '<span class="f-loc">@ ' + esc(f.location) + "</span></div>";
+  h += '<div class="f-stmt">' + esc(f.statement) + "</div>";
+  if (f.evidence) h += '<div class="f-ev">' + esc(f.evidence) + "</div>";
+  if (f.recommendation) h += '<div class="f-rec"><b>Fix:</b> ' + esc(f.recommendation) + "</div>";
+  if (!compact && f.consensus !== undefined){
+    var fams = [];
+    (f.vendors_raising || []).concat(f.vendors_confirming || []).forEach(function(v){
+      if (fams.indexOf(v) === -1) fams.push(v);
+    });
+    var famHtml = "";
+    if (fams.length && !(fams.length === 1 && fams[0] === "mock")){
+      famHtml = " · families: " + fams.map(function(v){
+        return '<i class="swatch" style="background:' + modelColor(v) + '"></i>' + esc(v);
+      }).join(" ") + (f.cross_vendor
+        ? ' <span class="chip core">cross-vendor</span>'
+        : ' <span class="chip minor">single family</span>');
+    }
+    h += '<div class="f-consensus">' + meter(f.consensus) +
+      "<span>consensus " + f.consensus + " · raised by " + (f.raised_by || []).length + " seat(s)" +
+      " · +" + f.confirms + " confirm / −" + f.rejects + " reject" +
+      (f.cannot_verify ? " / " + f.cannot_verify + " can't verify" : "") + famHtml + "</span></div>";
+  }
+  h += "</div>";
+  return h;
+}
+
+function personaTitle(name){
+  var t = name;
+  if (S.registry) (S.registry.personas || []).forEach(function(p){ if (p.name === name) t = p.title; });
+  return t;
+}
+
+function renderCritiques(run){
+  var box = el("tab-critiques");
+  var critiques = run.critiques || [];
+  if (!critiques.length){ box.innerHTML = "<p class='mini'>No critiques.</p>"; return; }
+  if (!S.activeSeat) S.activeSeat = critiques[0].seat_id;
+  var tabs = '<div class="seat-tabs" role="tablist">' + critiques.map(function(c){
+    return '<button class="seat-tab" role="tab" data-seat="' + esc(c.seat_id) + '" aria-selected="' +
+      (c.seat_id === S.activeSeat ? "true" : "false") + '" type="button">' +
+      esc(c.seat_id) + " · " + esc(personaTitle(c.persona)) + "</button>";
+  }).join("") + "</div>";
+  var active = critiques.filter(function(c){ return c.seat_id === S.activeSeat; })[0] || critiques[0];
+
+  var h = tabs;
+  h += '<p class="mini" style="margin:0 0 10px">model: <span class="mono">' + esc(active.model) + "</span></p>";
+  h += "<p style='margin:0 0 14px'>" + esc(active.narrative) + "</p>";
+  h += '<div class="subhead" style="margin-top:8px">Scores</div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">';
+  (active.scores || []).forEach(function(s){
+    h += '<span class="badge" title="' + esc(s.anchor_cited) + '">' + esc(s.dimension) + " · " + s.score + "/5</span>";
+  });
+  h += "</div>";
+  if (active.instance_checks && active.instance_checks.length){
+    h += '<div class="subhead">Instance checks</div>';
+    active.instance_checks.forEach(function(c){
+      h += '<div class="mini" style="margin:3px 0">' + (c.passed ? "✓" : "✕") + " " + esc(c.criterion) +
+        (c.citation ? ' <span class="mono">(' + esc(c.citation) + ")</span>" : "") + "</div>";
+    });
+  }
+  h += '<div class="subhead">Findings (' + (active.findings || []).length + ")</div>";
+  if (active.findings && active.findings.length){
+    active.findings.forEach(function(f){ h += findingCard(f, true); });
+  } else {
+    h += "<p class='mini'>This seat raised no findings" +
+         (active.persona === "contrarian" ? " — note: a silent contrarian trips an anomaly flag." : ".") + "</p>";
+  }
+  box.innerHTML = h;
+  Array.prototype.forEach.call(box.querySelectorAll(".seat-tab"), function(b){
+    b.addEventListener("click", function(){
+      S.activeSeat = b.getAttribute("data-seat");
+      renderCritiques(run);
+    });
+  });
+}
+
+function renderCrossExam(run){
+  var box = el("tab-crossexam");
+  var critiques = run.critiques || [];
+  var adjs = run.adjudications || [];
+  if (!critiques.length){ box.innerHTML = "<p class='mini'>Nothing to cross-examine.</p>"; return; }
+  var index = {};
+  adjs.forEach(function(a){ index[a.adjudicator_seat + "|" + a.target_seat + "|" + a.finding_id] = a; });
+  var seats = critiques.map(function(c){ return c.seat_id; });
+
+  var h = '<p class="mini" style="margin:0 0 12px">Each seat re-verified every other seat\'s findings, identities ' +
+    "stripped: <span class='x-confirm'>✓ confirm</span> (re-derived from the text), " +
+    "<span class='x-reject'>✕ reject</span> (re-check contradicts), " +
+    "<span class='x-cv'>○ cannot verify</span>, <span class='x-raised'>● raiser</span>. " +
+    "Hover a cell for the one-sentence reasoning.</p>";
+  h += '<div class="tbl-wrap"><table><thead><tr><th style="min-width:260px">Finding</th>';
+  seats.forEach(function(s){ h += "<th class='xcell'>" + esc(s.replace("seat-", "S")) + "</th>"; });
+  h += "</tr></thead><tbody>";
+  critiques.forEach(function(c){
+    (c.findings || []).forEach(function(f){
+      h += "<tr><td><span class='chip " + esc(f.severity) + "'>" + esc(f.severity) + "</span> " +
+           "<span class='mono mini'>" + esc(f.id) + "</span><br>" + esc(f.statement.slice(0, 110)) +
+           (f.statement.length > 110 ? "…" : "") + "</td>";
+      seats.forEach(function(s){
+        if (s === c.seat_id){ h += '<td class="xcell x-raised" title="raised this finding">●</td>'; return; }
+        var a = index[s + "|" + c.seat_id + "|" + f.id];
+        if (!a){ h += '<td class="xcell x-cv">–</td>'; return; }
+        var g = a.verdict === "confirm" ? ["✓", "x-confirm"] : (a.verdict === "reject" ? ["✕", "x-reject"] : ["○", "x-cv"]);
+        h += '<td class="xcell ' + g[1] + '" title="' + esc(a.reasoning) + '">' + g[0] + "</td>";
+      });
+      h += "</tr>";
+    });
+  });
+  h += "</tbody></table></div>";
+
+  if (run.rankings && run.rankings.length){
+    h += '<div class="subhead">Rigor rankings (anonymized critiques, 1–5)</div>';
+    run.rankings.forEach(function(r){
+      var parts = Object.keys(r.scores || {}).map(function(k){ return esc(k) + ": " + r.scores[k]; });
+      h += '<div class="mini" style="margin:3px 0"><b>' + esc(r.adjudicator_seat) + "</b> → " +
+           (parts.join(" · ") || "—") + "</div>";
+    });
+  }
+  box.innerHTML = h;
+}
+
+function renderEvidence(run){
+  var plan = run.plan || {};
+  var seats = (plan.seats || []).map(function(s){
+    return "<li><span class='mono'>" + esc(s.id) + "</span> — " + esc(personaTitle(s.persona)) +
+           " <span class='mini'>(" + esc(s.model) + ")</span></li>";
+  }).join("");
+  var crit = plan.criteria || {};
+  var h = '<dl class="kv">' +
+    "<dt>run id</dt><dd class='mono'>" + esc(plan.run_id) + "</dd>" +
+    "<dt>artifact</dt><dd class='mono'>" + esc(plan.artifact_id) + "</dd>" +
+    "<dt>profile</dt><dd>" + esc(crit.profile) + " <span class='mini'>v" + esc(crit.profile_version) + "</span></dd>" +
+    "<dt>dimensions</dt><dd>" + (crit.dimensions ? crit.dimensions.length : 0) +
+      " <span class='mini'>(" + (crit.dimensions ? crit.dimensions.filter(function(d){ return d.gating; }).length : 0) +
+      " gating)</span></dd>" +
+    "<dt>layout</dt><dd>" + esc(plan.layout || "round_robin") +
+      ((plan.coverage_notes || []).length
+        ? " <span class='mini'>· coverage: " + esc(plan.coverage_notes.join(" · ")) + "</span>"
+        : " <span class='mini'>· coverage clean</span>") + "</dd>" +
+    "<dt>judge</dt><dd>" + esc(plan.chairman_model) + " <span class='mini'>via " +
+      esc(plan.chairman_provider || "?") + "</span></dd>" +
+    "<dt>policy</dt><dd class='mono'>" + esc(plan.policy_id) + "</dd>" +
+    "<dt>created</dt><dd class='mono'>" + esc(plan.created_at) + "</dd>" +
+    "<dt>seats</dt><dd><ul style='margin:0;padding-left:18px'>" + seats + "</ul></dd></dl>";
+  h += '<p class="mini" style="margin-top:12px">The frozen evaluation plan is itself evidence: the review is ' +
+       "reproducible from it. The full record (plan + every critique + every adjudication + report + your " +
+       "decision) is hashed into the seal at authorization.</p>";
+  h += '<details class="fm"><summary>Raw run record (JSON)</summary><pre>' +
+       esc(JSON.stringify({plan: run.plan, report: run.report}, null, 2)) + "</pre></details>";
+  el("tab-evidence").innerHTML = h;
+}
+
+/* ============================ authorize + seal ============================ */
+function renderAuthorize(run){
+  var r = run.report || {};
+  var blocking = (r.findings || []).filter(function(f){ return f.severity === "blocking"; });
+  var box = el("authorizeBody");
+  var h = '<div class="row">' +
+    '<div class="col"><label class="fld" for="authDecision">Decision</label><select id="authDecision">' +
+    '<option value="accept">Accept</option>' +
+    '<option value="accept_with_conditions">Accept with conditions</option>' +
+    '<option value="send_back" selected>Send back for revision</option>' +
+    '<option value="reject">Reject</option></select></div>' +
+    '<div class="col"><label class="fld" for="authApprover">Approver</label>' +
+    '<input type="text" id="authApprover" placeholder="name or id"></div></div>' +
+    '<label class="fld" for="authRationale">Rationale <span class="hint">(recorded in the seal)</span></label>' +
+    '<textarea id="authRationale" rows="2" style="font-family:\'Public Sans\',sans-serif"></textarea>';
+  if (blocking.length){
+    h += '<div id="dismissWrap" class="hidden"><div class="subhead">Blocking findings — dismissal reasons required</div>' +
+      '<p class="mini" style="margin:0 0 10px">You are accepting over ' + blocking.length +
+      " blocking finding(s). Each dismissal reason is recorded verbatim in the evidence seal.</p>";
+    blocking.forEach(function(f, i){
+      h += '<div class="dismiss-block" data-key="' + esc(f.key) + '">' +
+        '<div class="f-stmt">[' + esc(f.kind) + " @ " + esc(f.location) + "] " + esc(f.statement) + "</div>" +
+        '<label class="fld" for="dismiss-' + i + '">Why is it safe to accept anyway?</label>' +
+        '<input type="text" id="dismiss-' + i + '" data-dismiss="' + esc(f.key) + '" placeholder="reason for the record"></div>';
+    });
+    h += "</div>";
+  }
+  h += '<div class="btn-row"><button class="btn" id="authBtn" type="button">Record decision &amp; seal</button>' +
+       '<span class="mini">Sealing hashes the full deliberation; any later edit is detectable.</span></div>';
+  box.innerHTML = h;
+
+  function syncDismiss(){
+    var d = el("authDecision").value;
+    var wrap = el("dismissWrap");
+    if (wrap) wrap.classList.toggle("hidden", d.indexOf("accept") !== 0);
+  }
+  el("authDecision").addEventListener("change", syncDismiss);
+  syncDismiss();
+
+  el("authBtn").addEventListener("click", function(){
+    var decision = el("authDecision").value;
+    var dismissed = [];
+    if (decision.indexOf("accept") === 0){
+      var inputs = document.querySelectorAll("[data-dismiss]");
+      var missing = false;
+      Array.prototype.forEach.call(inputs, function(i){
+        if (!i.value.trim()) missing = true;
+        dismissed.push({key: i.getAttribute("data-dismiss"), reason: i.value.trim()});
+      });
+      if (missing){ toast("Every blocking finding needs a dismissal reason before acceptance."); return; }
+    }
+    el("authBtn").disabled = true;
+    api("/api/runs/" + S.runId + "/authorize", {method:"POST", body:{
+      decision: decision,
+      approver: el("authApprover").value.trim() || "anonymous",
+      rationale: el("authRationale").value.trim(),
+      dismissed_findings: dismissed
+    }}).then(function(res){
+      setNode("seal", "done", "sha256 " + res.seal_sha256.slice(0, 12) + "…");
+      return api("/api/runs/" + S.runId);
+    }).then(function(run){
+      S.run = run;
+      renderChamberSafe();
+      renderSeal(run);
+    }).catch(function(e){
+      el("authBtn").disabled = false;
+      toast("Authorization refused: " + e.message);
+    });
+  });
+}
+
+function renderSeal(run){
+  var seal = run.seal || {};
+  var hd = seal.human_decision || {};
+  el("panel-seal").classList.remove("hidden");
+  var h = '<div class="notice"><b>Sealed.</b> The complete deliberation — manifest, plan, every critique, ' +
+    "every adjudication, the report, and your decision — is hashed into a single content-addressed record.</div>" +
+    '<dl class="kv">' +
+    "<dt>decision</dt><dd><b>" + esc(hd.decision) + "</b> by " + esc(hd.approver) +
+    (hd.rationale ? " — “" + esc(hd.rationale) + "”" : "") + "</dd>" +
+    "<dt>dismissals</dt><dd>" + ((hd.dismissed_findings && hd.dismissed_findings.length)
+      ? hd.dismissed_findings.map(function(d){ return "<div class='mini'>" + esc(d.key) + " → “" + esc(d.reason) + "”</div>"; }).join("")
+      : '<span class="mini">none</span>') + "</dd>" +
+    "<dt>seal sha-256</dt><dd class='mono' id='sealHash'>" + esc(seal.sha256) + "</dd></dl>" +
+    '<div class="btn-row">' +
+    '<a class="btn" href="/api/runs/' + esc(S.runId) + '/seal" download>Download seal (JSON)</a>' +
+    '<button class="btn ghost" id="copyHashBtn" type="button">Copy hash</button>' +
+    '<button class="btn quiet" id="newRunBtn" type="button">Review another document</button></div>';
+  el("sealBody").innerHTML = h;
+  el("panel-authorize").classList.add("hidden");
+  el("copyHashBtn").addEventListener("click", function(){
+    var txt = seal.sha256 || "";
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(function(){ toast("Hash copied."); },
+        function(){ toast("Copy failed — select it manually."); });
+    } else { toast("Clipboard unavailable — select the hash manually."); }
+  });
+  el("newRunBtn").addEventListener("click", function(){ location.reload(); });
+  el("panel-seal").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* ============================ council chamber ============================ */
+var MODEL_HUES = ["#1F6F6B", "#B07A1F", "#6B4E8E", "#B5532E", "#2E7D4F", "#3D6B9E", "#8C2F39"];
+function modelColor(name){
+  if (!name || name === "mock" || name === "(set model)") return "#9AA8B1";
+  var h = 0;
+  for (var i = 0; i < name.length; i++) h = ((h * 31) + name.charCodeAt(i)) >>> 0;
+  return MODEL_HUES[h % MODEL_HUES.length];
+}
+function modelChip(name){
+  return '<span class="s-model" title="' + esc(name) + '" style="border-left:4px solid ' +
+         modelColor(name) + '">' + esc(name) + "</span>";
+}
+function modelInputBox(value, attrs){
+  var v = (!value || value === "(set model)") ? "" : value;
+  return '<input type="text" class="s-model-inp" list="benchList" ' + attrs +
+         ' value="' + esc(v) + '" placeholder="model id" style="border-left-color:' +
+         modelColor(value) + '">';
+}
+function personaInfo(name){
+  var out = {title: name, core: false, mandate: ""};
+  if (S.registry) (S.registry.personas || []).forEach(function(p){
+    if (p.name === name){ out = {title: p.title, core: !!p.core, mandate: p.mandate || ""}; }
+  });
+  return out;
+}
+function monogram(title){
+  var parts = title.split(/\s+/).filter(function(w){ return w; });
+  return parts.length > 1 ? (parts[0][0] + parts[1][0]).toUpperCase() : title.slice(0, 2).toUpperCase();
+}
+function benchPool(){
+  if (S.bench.length) return S.bench.slice();
+  return el("providerSel").value === "mock" ? ["mock"] : [];
+}
+function councilNames(){
+  var names = [];
+  if (getCouncilMode() === "custom"){
+    names = Array.prototype.map.call(
+      document.querySelectorAll("#personaPick input:checked"), function(i){ return i.value; });
+  } else if (S.registry){
+    (S.registry.personas || []).forEach(function(p){ if (p.core) names.push(p.name); });
+    var t = S.manifest ? S.manifest.type : null;
+    (S.registry.types || []).forEach(function(x){
+      if (x.name === t) (x.personas || []).forEach(function(n){
+        if (names.indexOf(n) === -1) names.push(n);
+      });
+    });
+  }
+  return names;
+}
+function chamberSeatSpec(){
+  // authoritative once a run exists; otherwise the grid IS the assignment
+  if (S.run && S.run.plan && S.run.plan.seats && S.run.plan.seats.length){
+    return S.run.plan.seats.map(function(s){
+      var info = personaInfo(s.persona);
+      return {id: s.id, persona: s.persona, title: info.title, core: info.core, model: s.model};
+    });
+  }
+  var names = councilNames();
+  var pool = benchPool();
+  var seats = [], k = 0;
+  if (getLayoutMode() === "matrix"){
+    names.forEach(function(n){
+      var info = personaInfo(n);
+      pool.forEach(function(m){
+        if (S.cellOff[n + "|" + m]) return;
+        k += 1;
+        seats.push({id: "seat-" + k, persona: n, title: info.title, core: info.core, model: m});
+      });
+    });
+    return seats;
+  }
+  return names.map(function(n, i){
+    var info = personaInfo(n);
+    // per-seat assignment wins; otherwise bench models cycle round-robin
+    var model = S.seatModel[n] || (pool.length ? pool[i % pool.length] : "(set model)");
+    return {id: "seat-" + (i + 1), persona: n, title: info.title, core: info.core, model: model};
+  });
+}
+function currentJudgeModel(){
+  if (S.run && S.run.plan) return S.run.plan.chairman_model;
+  if (S.judgeModel) return S.judgeModel;
+  var pool = benchPool();
+  if (pool.length) return pool[0];
+  var first = "";
+  councilNames().some(function(n){
+    if (S.seatModel[n]){ first = S.seatModel[n]; return true; }
+    return false;
+  });
+  return first || "(set model)";
+}
+function seatCritique(seatId){
+  if (!S.run) return null;
+  var hit = null;
+  (S.run.critiques || []).forEach(function(c){ if (c.seat_id === seatId) hit = c; });
+  return hit;
+}
+function seatState(seatId){
+  if (!S.run) return "idle";
+  var ss = S.run.stage_seats || {critique: [], crossexam: []};
+  if (S.run.status === "running"){
+    if (S.run.stage === "critique")
+      return ss.critique.indexOf(seatId) !== -1 ? "done" : "deliberating";
+    if (S.run.stage === "crossexam")
+      return ss.crossexam.indexOf(seatId) !== -1 ? "done" : "deliberating";
+    return "done";
+  }
+  return S.run.status === "error" ? "idle" : "done";
+}
+function chamberCaption(nSeats){
+  if (!S.run) return "Assignment preview — " + nSeats + " seats. Click cells to " +
+    (getLayoutMode() === "matrix" ? "seat or vacate a charter × model pair." : "reassign a charter's model.");
+  var run = S.run, stages = run.stages || {};
+  var ss = run.stage_seats || {critique: [], crossexam: []};
+  if (run.status === "running" && run.stage === "critique")
+    return "Stage 1 — independent critique: " + ss.critique.length + "/" + nSeats +
+           " seats reported. Click a finished cell to read its evaluation.";
+  if (run.status === "running" && run.stage === "crossexam")
+    return "Stage 2 — model-blind cross-exam: " + ss.crossexam.length + "/" + nSeats +
+           " seats have adjudicated peers.";
+  if (run.status === "running")
+    return "Stage 3 — synthesis: consolidating findings, policy computing the disposition.";
+  if (run.status === "awaiting_authorization")
+    return "Disposition: " + (run.report ? run.report.disposition : "?") +
+           " — click any cell to audit that seat's evaluation; a human now holds the pen.";
+  if (run.status === "sealed") return "Sealed. Every cell remains navigable in the evidence record.";
+  if (run.status === "error") return "Run failed — see the toast and console.";
+  return "";
+}
+function chairmanState(){
+  if (!S.run) return "idle";
+  if (S.run.status === "running")
+    return (S.run.stage !== "critique" && S.run.stage !== "crossexam") ? "active" : "idle";
+  return S.run.status === "error" ? "idle" : "done";
+}
+function sevPayload(c){
+  if (!c) return "";
+  var n = {blocking: 0, major: 0, minor: 0, suggestion: 0};
+  (c.findings || []).forEach(function(f){ n[f.severity] = (n[f.severity] || 0) + 1; });
+  var bits = [];
+  if (n.blocking) bits.push('<i class="b">' + n.blocking + "B</i>");
+  if (n.major) bits.push('<i class="m">' + n.major + "M</i>");
+  if (n.minor) bits.push('<i class="mi">' + n.minor + "m</i>");
+  return '<span class="cellpay">' + (c.findings || []).length + "f" +
+         (bits.length ? " · " + bits.join(" ") : "") + "</span>";
+}
+function renderChamber(){
+  var box = el("chamberBox");
+  if (!box || el("panel-chamber").classList.contains("hidden")) return;
+  box.classList.add("grid");
+  var seats = chamberSeatSpec();
+  var configuring = !S.run;
+  var isMatrix = (S.run && S.run.plan) ? S.run.plan.layout === "matrix" : getLayoutMode() === "matrix";
+
+  el("benchBar").classList.toggle("hidden", !configuring);
+
+  var rows = [], cols = [], cell = {};
+  if (configuring){
+    rows = councilNames();
+    cols = benchPool();
+  }
+  seats.forEach(function(s){
+    if (rows.indexOf(s.persona) === -1) rows.push(s.persona);
+    if (cols.indexOf(s.model) === -1) cols.push(s.model);
+    cell[s.persona + "|" + s.model] = s;
+  });
+  var suggestions = cols.filter(function(m){ return m && m !== "(set model)"; }).slice();
+  if (S.registry && S.registry.model_catalog){
+    S.registry.model_catalog.forEach(function(entry){
+      if (suggestions.indexOf(entry.ref) === -1) suggestions.push(entry.ref);
+    });
+  }
+  el("benchList").innerHTML = suggestions
+    .map(function(m){ return '<option value="' + esc(m) + '">'; }).join("");
+
+  var h = '<div class="mgrid-scroll"><table class="mgrid"><thead><tr>' +
+          '<th class="m-corner">charter \\ model</th>';
+  cols.forEach(function(m){
+    h += '<th class="m-col">' + modelChip(m) +
+         (configuring && m !== "(set model)" && m !== "mock"
+           ? '<button class="col-x" type="button" data-removemodel="' + esc(m) +
+             '" title="Remove ' + esc(m) + ' from the bench" aria-label="Remove ' + esc(m) +
+             ' from the bench">✕</button>'
+           : "") + "</th>";
+  });
+  if (configuring){
+    h += '<th class="m-assign">' + (isMatrix ? "seated" : "seat model") + "</th>";
+  }
+  h += "</tr></thead><tbody>";
+  rows.forEach(function(p){
+    var info = personaInfo(p);
+    var mono = p === "contrarian" ? "background:var(--ink)"
+             : (info.core ? "" : "background:var(--card);color:var(--seal);border:2px solid var(--seal)");
+    h += '<tr><th class="m-row" title="' + esc(info.mandate) + '"><span class="s-mono" style="' + mono + '">' +
+         esc(monogram(info.title)) + "</span>" + esc(info.title) + "</th>";
+    cols.forEach(function(m){
+      var s = cell[p + "|" + m];
+      var key = esc(p) + "|" + esc(m);
+      if (s){
+        var st = seatState(s.id);
+        var c = seatCritique(s.id);
+        h += '<td class="mcell on ' + st + '" role="button" tabindex="0" data-cell="' + key + '"' +
+             (S.run ? ' data-seat="' + esc(s.id) + '"' : "") +
+             ' title="' + esc(s.id + " · " + info.title + " · " + m) +
+             (S.run ? " — click to inspect" : (isMatrix ? " — click to vacate" : "")) + '">' +
+             '<span class="s-dot"></span>' + esc(s.id.replace("seat-", "S")) + sevPayload(c) + "</td>";
+      } else if (configuring){
+        h += '<td class="mcell ' + (isMatrix ? "off" : "ghost") + '" role="button" tabindex="0" ' +
+             'data-cell="' + key + '" title="' + esc(info.title + " × " + m) +
+             (isMatrix ? " — click to seat" : " — click to assign") + '">' +
+             (isMatrix ? "—" : "·") + "</td>";
+      } else {
+        h += '<td class="mcell off">–</td>';
+      }
+    });
+    if (configuring){
+      if (isMatrix){
+        var onN = cols.filter(function(mm){ return !S.cellOff[p + "|" + mm]; }).length;
+        h += '<td class="m-assign mini">' + onN + "/" + cols.length + " seated</td>";
+      } else {
+        var assigned = null;
+        seats.forEach(function(s){ if (s.persona === p) assigned = s.model; });
+        h += '<td class="m-assign">' + modelInputBox(assigned,
+             'data-persona="' + esc(p) + '" aria-label="Model for ' + esc(info.title) + '"') + "</td>";
+      }
+    }
+    h += "</tr>";
+  });
+  h += "</tbody></table></div>";
+  var art = S.manifest || {};
+  h += '<div class="mgrid-meta">on the table: ' + esc(art.id || "—") + " · type " +
+       esc(art.type || "?") + " · policy " + esc(el("policySel").value) +
+       " · " + rows.length + " charters × " + cols.length + " models → " + seats.length + " seats</div>";
+  box.innerHTML = h;
+
+  renderChairmanAndLegend(seats);
+  el("chamberStatus").textContent = chamberCaption(seats.length);
+  if (S.inspectSeat) renderSeatInspector(S.inspectSeat);
+}
+function renderChairmanAndLegend(seats){
+  var judge = currentJudgeModel();
+  var judgeCell = (!S.run)
+    ? modelInputBox(judge, 'data-judge="1" aria-label="Model for the judge"')
+    : modelChip(judge);
+  var cstate = chairmanState();
+  var bar = el("chairmanBar");
+  bar.className = "chairman-bar" + (cstate === "active" ? " active" : "");
+  bar.innerHTML = '<div class="c-mono">Ch</div>' +
+    "<div style='min-width:0'><b>Chairman — the judge</b> · " + judgeCell +
+    '<div class="c-note">synthesizes the record and may dissent — the disposition is computed by policy and ' +
+    "cannot be overridden" + (cstate === "done" ? " · synthesis complete" : "") + "</div></div>";
+
+  var distinct = [];
+  seats.concat([{model: judge}]).forEach(function(s){
+    if (distinct.indexOf(s.model) === -1) distinct.push(s.model);
+  });
+  var lg = '<span class="ml-label">Models on the bench</span>';
+  distinct.forEach(function(m){
+    lg += '<span><i class="swatch" style="background:' + modelColor(m) + '"></i>' + esc(m) + "</span>";
+  });
+  var legendEl = el("modelLegend");
+  if (!legendEl){
+    legendEl = document.createElement("div");
+    legendEl.id = "modelLegend";
+    legendEl.className = "model-legend";
+    bar.parentNode.insertBefore(legendEl, bar.nextSibling);
+  }
+  legendEl.innerHTML = lg;
+}
+
+/* ---- navigation: any cell -> that seat's full evaluation ---- */
+function chamberCellClick(e){
+  var rm = e.target.closest ? e.target.closest("[data-removemodel]") : null;
+  if (rm && !S.run){
+    var gone = rm.getAttribute("data-removemodel");
+    S.bench = S.bench.filter(function(x){ return x !== gone; });
+    Object.keys(S.seatModel).forEach(function(p){ if (S.seatModel[p] === gone) delete S.seatModel[p]; });
+    Object.keys(S.cellOff).forEach(function(k){
+      if (k.slice(k.indexOf("|") + 1) === gone) delete S.cellOff[k];
+    });
+    if (S.judgeModel === gone) S.judgeModel = "";
+    renderChamberSafe();
+    return;
+  }
+  var t = e.target.closest ? e.target.closest("[data-cell]") : null;
+  if (!t) return;
+  if (S.run){
+    var sid = t.getAttribute("data-seat");
+    if (sid){ S.inspectSeat = sid; renderSeatInspector(sid); }
+    return;
+  }
+  var parts = t.getAttribute("data-cell").split("|");
+  var p = parts[0], m = parts[1];
+  if (getLayoutMode() === "matrix"){
+    var key = p + "|" + m;
+    if (S.cellOff[key]){ delete S.cellOff[key]; }
+    else {
+      var rowOn = benchPool().filter(function(mm){ return !S.cellOff[p + "|" + mm]; });
+      if (rowOn.length <= 1){ toast("Every charter needs at least one model — vacate a different cell."); return; }
+      S.cellOff[key] = true;
+    }
+  } else {
+    S.seatModel[p] = m;
+  }
+  renderChamberSafe();
+}
+function verdictGlyph(v){
+  return v === "confirm" ? '<span class="x-confirm">✓</span>'
+       : v === "reject" ? '<span class="x-reject">✕</span>' : '<span class="x-cv">○</span>';
+}
+function renderSeatInspector(seatId){
+  var panel = el("seatInspector");
+  var seats = chamberSeatSpec();
+  var seat = null;
+  seats.forEach(function(s){ if (s.id === seatId) seat = s; });
+  if (!seat){ panel.classList.add("hidden"); return; }
+  var info = personaInfo(seat.persona);
+  var c = seatCritique(seatId);
+  var st = seatState(seatId);
+  var h = '<div class="si-head"><span class="mono"><b>' + esc(seatId) + "</b></span>" +
+    "<b>" + esc(info.title) + "</b>" + modelChip(seat.model) +
+    '<span class="chip ' + (st === "done" ? "suggestion" : "minor") + '">' + esc(st) + "</span>" +
+    '<button class="icon-btn" type="button" data-close="1" title="Close" aria-label="Close inspector">✕</button></div>';
+  h += '<div class="si-mandate">Charter: ' + esc(info.mandate) + "</div>";
+  if (!c){
+    h += '<p class="mini">This seat has not reported yet — its critique will appear here the moment it lands.</p>';
+    panel.innerHTML = h; panel.classList.remove("hidden"); return;
+  }
+  h += "<p style='margin:0 0 12px'>" + esc(c.narrative) + "</p>";
+  h += '<div class="subhead" style="margin-top:4px">Scores</div><div style="display:flex;flex-wrap:wrap;gap:8px">';
+  (c.scores || []).forEach(function(s){
+    h += '<span class="badge" title="' + esc(s.anchor_cited) + '">' + esc(s.dimension) + " · " + s.score + "/5</span>";
+  });
+  h += "</div>";
+  if (c.instance_checks && c.instance_checks.length){
+    h += '<div class="subhead">Instance checks</div>';
+    c.instance_checks.forEach(function(ic){
+      h += '<div class="mini" style="margin:3px 0">' + (ic.passed ? "✓" : "✕") + " " + esc(ic.criterion) + "</div>";
+    });
+  }
+  var recv = {};
+  (S.run.adjudications || []).forEach(function(a){
+    if (a.target_seat !== seatId) return;
+    (recv[a.finding_id] = recv[a.finding_id] || []).push(a);
+  });
+  h += '<div class="subhead">Findings this seat produced (' + (c.findings || []).length + ")</div>";
+  if (!(c.findings || []).length){
+    h += "<p class='mini'>None" + (seat.persona === "contrarian" ? " — note: a silent contrarian breaches its charter." : ".") + "</p>";
+  }
+  (c.findings || []).forEach(function(f){
+    h += findingCard(f, true);
+    var verdicts = recv[f.id] || [];
+    if (verdicts.length){
+      var glyphs = verdicts.map(function(a){
+        return '<span title="' + esc(a.adjudicator_seat + ": " + a.reasoning) + '">' + verdictGlyph(a.verdict) + "</span>";
+      }).join(" ");
+      h += '<div class="si-adj">peer verdicts: ' + glyphs + "</div>";
+    }
+  });
+  var given = (S.run.adjudications || []).filter(function(a){ return a.adjudicator_seat === seatId; });
+  h += '<div class="subhead">Cross-exam this seat performed (' + given.length + ")</div>";
+  if (!given.length){
+    h += "<p class='mini'>" + (S.run.stage === "critique" ? "Pending — cross-exam starts when every seat has reported." :
+         "None — model-blind rule: this seat had no out-of-family findings to adjudicate.") + "</p>";
+  } else {
+    h += '<div class="si-given">';
+    given.slice(0, 60).forEach(function(a){
+      h += '<div class="mini" style="margin:3px 0">' + verdictGlyph(a.verdict) + " → " +
+           '<span class="mono">' + esc(a.finding_id) + "</span> (" + esc(a.target_seat) + "): " +
+           esc(a.reasoning) + "</div>";
+    });
+    if (given.length > 60) h += '<div class="mini">… and ' + (given.length - 60) + " more in the evidence seal.</div>";
+    h += "</div>";
+  }
+  panel.innerHTML = h;
+  panel.classList.remove("hidden");
+}
+var chamberResizeTimer = null;
+function renderChamberSafe(){
+  if (el("panel-chamber").classList.contains("hidden")) return;
+  try { renderChamber(); }
+  catch (e) { console.error("[gage] chamber render failed:", e); }
+}
+window.addEventListener("resize", function(){
+  clearTimeout(chamberResizeTimer);
+  chamberResizeTimer = setTimeout(renderChamberSafe, 150);
+});
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+name: consistency-checker
+title: Consistency & Grounding Checker
+core: true
+mandate: 'Hunt contradictions and unsupported claims. Cross-reference every commitment against every other
+  section; flag confident assertions that cite no evidence, reference, or marked assumption. Numbers,
+  terminology, and promises must agree end to end.
+
+  '
+stance: Treat confidence without provenance as a defect, not a style.
+focus_kinds:
+- contradiction
+- unsupported_claim
+- stale_reference
+focus_dimensions:
+- internal_consistency
+- groundedness
+obligations:
+- id: score-everything
+  description: Score every dimension in the stack
+  check: scored_all_dimensions
+- id: check-every-criterion
+  description: Pass/fail every instance acceptance criterion with a citation
+  check: checked_all_instance_criteria

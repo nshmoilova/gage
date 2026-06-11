@@ -1,0 +1,25 @@
+id: default-v2
+summary: Standard gate — blocking consensus or failed instance checks force revision.
+rules:
+  - when: instance_check_failed
+    then: revise
+    label: failed-instance-criterion
+  - when: blocking_finding
+    min_consensus: 0.5
+    then: revise
+    label: blocking-consensus
+  - when: gating_dimension_low
+    max_median: 2
+    then: revise
+    label: gating-dimension-low
+  - when: severity_count
+    severity: major
+    min_consensus: 0.5
+    greater_than: 3
+    then: approve_with_conditions
+    label: major-finding-load
+default: approve
+anomalies:
+  low_dispersion_unanimity:
+    max_mean_dispersion: 0.3
+  silent_contrarian: {}

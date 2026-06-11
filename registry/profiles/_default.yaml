@@ -1,0 +1,9 @@
+name: _default
+version: "1"
+summary: Fallback profile for unknown types — universal dimensions only, core personas.
+signals: []
+dimensions: []
+gating_dimensions: [purpose_fitness, completeness]
+structure_expectations: []
+personas: []
+defect_probes: []

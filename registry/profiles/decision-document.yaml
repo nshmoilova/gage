@@ -1,0 +1,21 @@
+name: decision-document
+version: "1"
+summary: Base profile for any artifact that records a decision and its rationale.
+signals: [decision, rationale, alternatives, trade-off, tradeoff]
+dimensions:
+  - name: alternatives_considered
+    question: Were alternatives genuinely considered, with honest reasons for rejection?
+    anchors:
+      1: No alternatives, or strawmen listed to be knocked down.
+      3: Real alternatives named, but rejection reasons are thin or unstated.
+      5: Alternatives are characterized fairly, with explicit trade-offs and rejection rationale.
+  - name: decision_traceability
+    question: Can a future reader reconstruct why this decision was made from this document alone?
+    anchors:
+      1: The decision appears without inputs; rationale lives in someone's head.
+      3: Rationale present but key inputs (data, constraints, stakeholders) are missing.
+      5: Inputs, constraints, and reasoning chain are explicit enough to re-derive the decision.
+gating_dimensions: [alternatives_considered]
+structure_expectations: [Context, Decision, Alternatives, Consequences]
+personas: []
+defect_probes: [delete the alternatives section, invert the decision rationale between sections]

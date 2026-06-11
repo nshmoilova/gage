@@ -1,0 +1,29 @@
+id: strict-v1
+summary: Regulated-tier gate — any confirmed blocking finding rejects; majors revise.
+rules:
+  - when: blocking_finding
+    min_consensus: 0.6
+    then: reject
+    label: confirmed-blocking
+  - when: instance_check_failed
+    then: revise
+    label: failed-instance-criterion
+  - when: blocking_finding
+    min_consensus: 0.0
+    then: revise
+    label: any-blocking
+  - when: gating_dimension_low
+    max_median: 3
+    then: revise
+    label: gating-dimension-low
+  - when: severity_count
+    severity: major
+    min_consensus: 0.4
+    greater_than: 1
+    then: approve_with_conditions
+    label: major-finding-load
+default: approve
+anomalies:
+  low_dispersion_unanimity:
+    max_mean_dispersion: 0.25
+  silent_contrarian: {}

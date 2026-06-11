@@ -1,0 +1,27 @@
+name: threat-model
+version: "2"
+summary: Security threat model for a system or change.
+signals: [threat, stride, attacker, trust boundary, mitigation, spoofing, tampering, exfiltration, vulnerability]
+dimensions:
+  - name: trust_boundary_completeness
+    question: Are all assets, actors, and trust boundaries identified?
+    anchors:
+      1: Major components or data flows are missing from the model.
+      3: Boundaries drawn but some actors or data stores are unmodeled.
+      5: Every component, flow, and privilege transition in the referenced architecture is modeled.
+  - name: threat_mitigation_mapping
+    question: Is every identified threat mapped to a mitigation or an accepted-risk entry?
+    anchors:
+      1: Threats listed without mitigations, or mitigations without threats.
+      3: Most threats mapped; some mitigations are vague intentions.
+      5: Every threat has a testable mitigation or an explicit, owned risk acceptance.
+  - name: residual_risk
+    question: Is residual risk stated honestly after mitigations?
+    anchors:
+      1: The model implies zero residual risk.
+      3: Residual risk acknowledged but not characterized.
+      5: Residual risk is characterized, owned, and tied to review triggers.
+gating_dimensions: [threat_mitigation_mapping, trust_boundary_completeness]
+structure_expectations: [Assets, Trust Boundaries, Threats, Mitigations, Residual Risk]
+personas: [security-specialist]
+defect_probes: [plant an unauthenticated admin endpoint, drop one trust boundary from the diagram narrative]

@@ -1,0 +1,21 @@
+name: product-brief
+version: "1"
+summary: Short-form product or opportunity brief.
+signals: [brief, opportunity, market, customer, differentiation, positioning, tam]
+dimensions:
+  - name: assumption_transparency
+    question: Are sizing and demand assumptions explicit rather than embedded in conclusions?
+    anchors:
+      1: Conclusions presented as facts; assumptions invisible.
+      3: Some assumptions surfaced; key multipliers still implicit.
+      5: Every load-bearing assumption is stated, sourced or flagged, and sensitivity-checked.
+  - name: differentiation
+    question: Is the difference versus the status quo concrete and defensible?
+    anchors:
+      1: Differentiation is adjectives.
+      3: Differentiation named but not evidenced against real alternatives.
+      5: Differentiation tied to specific capability gaps with evidence.
+gating_dimensions: [assumption_transparency]
+structure_expectations: [Problem, Opportunity, Differentiation, Risks]
+personas: [audience-advocate]
+defect_probes: [harden a hedge into a certainty, remove the risks section]
